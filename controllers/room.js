@@ -1,6 +1,6 @@
 
 var Brag = require('./brag');
-var venues = require('./venues').venues;
+var venues = require('../models/venues').venues;
 
 global.PLAYER_STATUS_NONE = 0,
 global.PLAYER_STATUS_WAIT = 1,
