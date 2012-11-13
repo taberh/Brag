@@ -9,6 +9,7 @@
 
 var sign = require('./controllers/sign');
 var user = require('./controllers/user');
+var venues = require('./controllers/venues');
 
 module.exports = function(app) {
 
@@ -17,6 +18,8 @@ module.exports = function(app) {
     app.post('/api/signup', sign.signup);
     app.get('/api/logout', sign.logout);
     app.get('/api/user/info', user.info);
+    app.get('/api/venues', venues.list);
+    app.post('/api/venues', venues.list);
 
     app.get('*', function(req, res) {
             console.log(req.headers);
