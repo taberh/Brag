@@ -6,9 +6,9 @@ exports.list = function(req, res, next) {
 
     for (var i = 0; i < venues.length; i++) {
         data.push({
-            'name': venues.name,
-            'online': venues.online,
-            'min_score': venues['min_score']
+            'name': venues[i].name,
+            'online': venues[i].online,
+            'min_score': venues[i]['min_score']
         });
     }
 
