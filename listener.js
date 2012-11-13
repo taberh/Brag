@@ -40,7 +40,21 @@ exports.listen = function(httpServer, sessionStore) {
         client.on('room ready', room.ready);
         client.on('room operate', room.operate);
         client.on('room trusteeship', room.trusteeship);
-        client.on('disconnect', room.trusteeship);
         client.on('room cancel trusteeship', room.cancelTrusteeship);
+        client.on('disconnect', function () {
+            if (client.handshake.user) {
+                switch(client.handshake.user['status']) {
+                    case PLAYER_STATUS_PLAYING:
+                        room.trusteeship(function(){});
+                        break;
+                    case PLAYER_STATUS_WAIT:
+                    case PLAYER_STATUS_READY:
+                        room.leave.call(this, function(){});
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
     });
 };

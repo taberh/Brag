@@ -1,33 +1,26 @@
 
-var config = require('../config').config;
 var Brag = require('./brag');
-var Cards = require('../models/cards');
+var venues = require('./venues').venues;
 
-var venues = [], i;
-
-// init venues
-for (i = 0; i < config.venues.length; i++) {
-    venues.push(Object.create(config.venues[i], {
-        rooms: { writable: true, value: [] },
-        online: { writable: true, value: 0 }
-    }));
-}
-
-exports.venues = venues;
+global.PLAYER_STATUS_NONE = 0,
+global.PLAYER_STATUS_WAIT = 1,
+global.PLAYER_STATUS_READY = 2,
+global.PLAYER_STATUS_PLAYING = 3,
+global.PLAYER_STATUS_TRUSTEESHIP = 4;
 
 exports.create = function(chip, name, password, callback) {
+    var player = this.handshake.user,
+        room, roomID;
+
     if (!callback || typeof password === 'function') {
         callback = password;
         password = undefined;
     }
 
-    var player = this.handshake.user;
+    if (!error_player(player, callback)) return;
 
-    if (!error_player(player, callback)) 
-        return;
-
-    var room = new Room(chip, player['_id'], name, password);
-    var roomID = gen_room_id_in_venues(0);
+    room = new Room(chip, player['_id'], name, password);
+    roomID = gen_room_id_in_venues(0);
 
     venues[0].rooms[roomID] = room;
 
@@ -43,17 +36,15 @@ exports.create = function(chip, name, password, callback) {
 exports.enter = function(venueID, roomID, password, callback) {
     var player = this.handshake.user,
         venue = venues[venueID],
-        room;
+        room, players;
 
     if (!callback && typeof roomID === 'function') {
         callback = roomID;
         roomID = undefined;
     }
 
-    if (!error_player(player, callback)) 
-        return;
-    if (!error_venue(venue, callback)) 
-        return;
+    if (!error_player(player, callback)) return;
+    if (!error_venue(venue, callback)) return;
 
     if (typeof player.vid !== 'undefined' || 
         typeof player.rid !== 'undefined') {
@@ -66,8 +57,7 @@ exports.enter = function(venueID, roomID, password, callback) {
     if (typeof roomID !== 'undefined') {
         room = venue.rooms[roomID];
 
-        if (!error_room(room, callback)) 
-            return;
+        if (!error_room(room, callback)) return;
     }
     else {
         roomID = alloc_room_id_in_venues(venueID);
@@ -93,13 +83,31 @@ exports.enter = function(venueID, roomID, password, callback) {
     player.rid = roomID;
     venue.online++;
 
-    if (room.enter(this)) {
+    try {
+        room.enter(this);
+
+        players = [];
+
+        room.players.forEach(function(client) {
+            if (client) {
+                client = build_player_info_from_client(client);
+            }
+
+            players.push(client);
+        });
+
         callback({
             'status': 0,
             'message': '进入房间',
             'data': {
-                'players': room.players
+                'players': players
             }
+        });
+    } 
+    catch(e) {
+        callback({
+            'status': e.code,
+            'message': e.message
         });
     }
 };
@@ -108,25 +116,33 @@ exports.leave = function(callback) {
     var player = this.handshake.user,
         venue, room;
 
-    if (!error_player(player, callback)) 
-        return;
+    if (!error_player(player, callback)) return;
 
-    if (!error_in_room(player, callback))
-        return;
+    if (player['status'] === PLAYER_STATUS_PLAYING) {
+        return callback({
+            'status': 207,
+            'message': '游戏状态不能退出'
+        });
+    }
+
+    if (player['status'] === PLAYER_STATUS_NONE) {
+        return callback({
+            'status': 211,
+            'message': '不在房间内，无需退出操作'
+        });
+    }
 
     venue = venues[player.vid];
-    
-    if (!error_venue(venue, callback)) 
-        return;
-
+    if (!error_venue(venue, callback)) return;
     room = venue.rooms[player.rid];
+    if (!error_room(room, callback)) return;
 
-    if (!error_room(room, callback)) 
-        return;
+    try {
+        room.leave(this);
 
-    if (room.leave(this)) {
         if (!room.hasPlayer())
             delete venue.rooms[player.rid];
+
         delete player.vid;
         delete player.rid;
         venue.online--;
@@ -136,10 +152,10 @@ exports.leave = function(callback) {
             'message': '退出成功'
         });
     }
-    else if (player.playing) {
+    catch(e) {
         callback({
-            'status': 207,
-            'message': '游戏状态不能退出'
+            'status': e.code,
+            'message': e.message
         });
     }
 };
@@ -148,26 +164,24 @@ exports.ready = function() {
     var player = this.handshake.user,
         venue, room;
 
-    if (!error_player(player, callback))
-        return;
-
-    if (!error_in_room(player, callback))
-        return;
-
+    if (!error_player(player, callback)) return;
     venue = venues[player.vid];
-
-    if (!error_venue(venue, callback))
-        return;
-
+    if (!error_venue(venue, callback)) return;
     room = venue.rooms[player.rid];
+    if (!error_room(room, callback)) return;
 
-    if (!error_room(room, callback))
-        return;
+    try {
+        room.ready(this);
 
-    if (room.ready(this)) {
         callback({
             'status': 0,
             'message': '准备成功'
+        });
+    }
+    catch(e) {
+        callback({
+            'status': e.code,
+            'message': e.message
         });
     }
 };
@@ -185,26 +199,24 @@ exports.operate = function() {
         });
     }
 
-    if (!error_player(player, callback))
-        return;
-
-    if (!error_in_room(player, callback))
-        return;
-
+    if (!error_player(player, callback)) return;
     venue = venues[player.vid];
-
-    if (!error_venue(venue, callback))
-        return;
-
+    if (!error_venue(venue, callback)) return;
     room = venue.rooms[player.rid];
+    if (!error_room(room, callback)) return;
 
-    if (!error_room(room, callback))
-        return;
+    try {
+        room.operate(this, arguments[0], arguments[1]);
 
-    if (room.operator(this, arguments[0], arguments[1])) {
         callback({
             'status': 0,
             'message': '操作成功'
+        });
+    }
+    catch(e) {
+        callback({
+            'status': e.code,
+            'message': e.message
         });
     }
 };
@@ -213,55 +225,50 @@ exports.trusteeship = function(callback) {
     var player = this.handshake.user,
         venue, room;
 
-    if (!error_player(player, callback))
-        return;
+    if (!error_player(player, callback)) return;
 
-    if (!error_in_room(player, callback))
-        return;
-
-    if (!player.playing) {
+    if (player['status'] !== PLAYER_STATUS_PLAYING) {
         return callback({
             'status': 209,
             'message': '非游戏状态不能托管'
         });
     }
 
+    if (player['status'] === PLAYER_STATUS_TRUSTEESHIP) {
+        return callback({
+            'status': 212,
+            'message': '已托管，无需重复操作'
+        });
+    }
+
     venue = venues[player.vid];
-
-    if (!error_venue(venue, callback))
-        return;
-
+    if (!error_venue(venue, callback)) return;
     room = venue.rooms[player.rid];
+    if (!error_room(room, callback)) return;
 
-    if (!error_room(room, callback))
-        return;
+    try {
+        room.trusteeship(this);
 
-    if (room.trusteeship(this)) {
         callback({
             'status': 0,
             'message': '托管成功'
         });
     }
+    catch(e) {
+        callback({
+            'status': e.code,
+            'message': e.message
+        });
+    }
 };
 
-exports.cancelTrusteeship = function() {
+exports.cancelTrusteeship = function(callback) {
     var player = this.handshake.user,
         venue, room;
 
-    if (!error_player(player, callback))
-        return;
+    if (!error_player(player, callback)) return;
 
-    if (!error_in_room(player, callback))
-        return;
-
-    if (!player.playing) {
-        return callback({
-            'status': 209,
-            'message': '非游戏状态不能托管'
-        });
-    }
-
-    if (!player.trusteeship) {
+    if (player['status'] !== PLAYER_STATUS_TRUSTEESHIP) {
         return callback({
             'status': 210,
             'message': '未托管'
@@ -269,22 +276,33 @@ exports.cancelTrusteeship = function() {
     }
 
     venue = venues[player.vid];
-
-    if (!error_venue(venue, callback))
-        return;
-
+    if (!error_venue(venue, callback)) return;
     room = venue.rooms[player.rid];
+    if (!error_room(room, callback)) return;
 
-    if (!error_room(room, callback))
-        return;
+    try {
+        room.cancelTrusteeship(this);
 
-    if (room.cancelTrusteeship(this)) {
         callback({
             'status': 0,
             'message': '取消托管成功'
         });
     }
+    catch(e) {
+        callback({
+            'status': e.code,
+            'message': e.message
+        });
+    }
 };
+
+function CustomError(message, code) {
+    this.message = message;
+    this.code = code;
+}
+
+CustomError.prototype = new Error;
+CustomError.prototype.constructor = CustomError;
 
 function Room(chip, owner, name, password) {
     this.owner = owner;
@@ -324,13 +342,11 @@ Room.prototype = {
         return false;
     },
     enter: function(client) {
-        var i, player,
+        var i, player, newPlayer
             players = this.players;
 
-        if (!this.hasSeat()) {
-            console.log('seat fill');
-            return false;
-        }
+        if (!this.hasSeat()) 
+            throw new CustomError('该房间座位已满', 205);
 
         if (players.length < 3) {
             players.push(client);
@@ -341,11 +357,12 @@ Room.prototype = {
                     players[i](client);
             }
 
-            if (i === players.length) {
-                console.log('not find seat, ~.~');
-                return false;
-            }
+            if (i === players.length)
+                throw new CustomError('该房间座位已满', 205);
         }
+
+        client.handshake.user['status'] = PLAYER_STATUS_WAIT;
+        newPlayer = build_player_info_from_client(client);
 
         for (i = 0; i < players.length; i++) {
             player = players[i];
@@ -353,15 +370,13 @@ Room.prototype = {
             if (player && player !== client) {
                 player.emit('room enter', {
                     'status': 0,
-                    'message': client['_id'] + '玩家进入房间',
+                    'message': newPlayer['nickname'] + '玩家进入房间',
                     'data': {
-                        'player': client
+                        'player': newPlayer
                     }
                 });
             }
         }
-
-        return true;
     },
     leave: function(client) {
         var i, player,
@@ -385,12 +400,15 @@ Room.prototype = {
                 }
             }
 
-            return true;
+            client.handshake.user['status'] = PLAYER_STATUS_NONE;
+
+            return;
         }
 
-        return false;
+        throw new CustomError('该房间内未找到玩家', 210);
     },
     ready: function(client) {
+        client.handshake.user['status'] = PLAYER_STATUS_READY;
     },
     operate: function() {
         if (!arguments.length) {
@@ -405,8 +423,10 @@ Room.prototype = {
         }
     },
     trusteeship: function() {
+        client.handshake.user['status'] = PLAYER_STATUS_TRUSTEESHIP;
     },
     cancelTrusteeship: function() {
+        client.handshake.user['status'] = PLAYER_STATUS_PLAYING;
     }
 };
 
@@ -486,16 +506,20 @@ function error_player(player, callback) {
     return true;
 }
 
-function error_in_room(player, callback) {
-    if (typeof player.rid === 'undefined' ||
-        typeof player.vid === 'undefined') {
-            return callback({
-                'status': 205,
-                'message': '您不在房间内'
-            });
+function build_player_info_from_client(client) {
+    var user = client.handshake.user;
 
-            return false;
+    if (!user) return null;
+
+    return {
+        '_id': user['_id'],
+        'nickname': user['nickname'],
+        'openid': user['openid'],
+        'sex': user['sex'],
+        'avatar_url': user['avatar_url'],
+        'score': user['score'],
+        'count_win': user['count_win'],
+        'count_lose': user['count_lost'],
+        'status': user['status']
     }
-
-    return true;
 }

@@ -9,8 +9,11 @@
 202     socket->room->enter->password is error
 203     socket->room->enter->venue.name + roomID + room is not exist
 204     socket->room->leave->please do back current room
-205     socket->room->leave->not in room
+205     socket->room->enter->seat fill
 206     socket->room->leave->venue not exist
 207     socket->room->leave->playing don't quit
 208     socket->room->operator->params error
 209     socket->room->trusteeship->not playing status can't trusteeship
+210     socket->room->leave->not find player in this room
+211     
+212
