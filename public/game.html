@@ -6,9 +6,12 @@ var socket = io.connect('http://127.0.0.1/game');
     console.log(data);
 });*/
 
-socket.on('room enter', function() {
+function log() {
     console.log(arguments);
-});
+}
+
+socket.on('room enter', log);
+socket.on('room leave', log);
 
 socket.emit('room enter', 1, function() {
     console.log(arguments);

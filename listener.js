@@ -4,6 +4,7 @@ var socket_io = require('socket.io')
   , cookie = require('express/node_modules/cookie')
   , connect = require('express/node_modules/connect')
   , parseCookies = connect.utils.parseSignedCookies
+  , player = require('./controllers/player')
   , room = require('./controllers/room')
   , Brag = require('./controllers/brag');
 
@@ -34,18 +35,23 @@ exports.listen = function(httpServer, sessionStore) {
     });
 
     io.of('/game').on('connection', function(client) {
+
+        if (client.handshake.user) {
+            client.handshake.user['status'] = PLAYER_STATUS_NONE;
+        }
+
         client.on('room create', room.create);
         client.on('room enter', room.enter);
         client.on('room leave', room.leave);
-        client.on('room ready', room.ready);
-        client.on('room operate', room.operate);
-        client.on('room trusteeship', room.trusteeship);
-        client.on('room cancel trusteeship', room.cancelTrusteeship);
+        client.on('player ready', player.ready);
+        client.on('player operate', player.operate);
+        client.on('player trusteeship', player.trusteeship);
+        client.on('player cancel trusteeship', player.cancelTrusteeship);
         client.on('disconnect', function () {
             if (client.handshake.user) {
                 switch(client.handshake.user['status']) {
                     case PLAYER_STATUS_PLAYING:
-                        room.trusteeship(function(){});
+                        player.trusteeship(function(){});
                         break;
                     case PLAYER_STATUS_WAIT:
                     case PLAYER_STATUS_READY:
