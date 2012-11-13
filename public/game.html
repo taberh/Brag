@@ -1,0 +1,12 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io.connect('http://127.0.0.1/game');
+
+/*socket.emit('room create', 100, 'room1', function(data) {
+    console.log(data);
+});*/
+
+socket.emit('room enter', 1, function() {
+    console.log(arguments);
+});
+</script>

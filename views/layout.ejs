@@ -1,0 +1,20 @@
+<!DOCTYPE html> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+  <head>
+    <!-- meta -->
+    <meta charset="utf-8" />
+    <meta name='description' content='<%= config.description %>'>
+    <%
+    var headers = config.site_headers || [];
+    for (var i = 0, l = headers.length; i < l; i++) { 
+    %>
+    <%- headers[i] %>
+    <% } %>
+    <title><%-blocks.title %> - <%= config.name %></title>
+    <%- stylesheets %>
+    <%- scripts %>
+    </head>
+  <body>
+    <%- body %>
+  </body>
+</html> 
