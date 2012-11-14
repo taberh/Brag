@@ -1,4 +1,5 @@
 
+var Brag = require('./brag');
 var venues = require('../models/venues');
 var exception = require('../lib/exception');
 
@@ -9,8 +10,8 @@ global.PLAYER_STATUS_PLAYING = 3,
 global.PLAYER_STATUS_TRUSTEESHIP = 4;
 
 exports.ready = function() {
-    var user = this.handshake.user,
-        venue, room;
+    var user = this.handshake.user, count = 0,
+        venue, room, clients, client, i, aUser;
 
     try {
         exception.is_exist.user('player.ready', user);
@@ -22,12 +23,38 @@ exports.ready = function() {
         try {
             user['status'] = PLAYER_STATUS_READY;
 
-            // tell other clients in this room and launch game
+            clients = room.clients;
 
-            callback && callback({
-                'status': 0,
-                'message': '准备成功'
-            });
+            for (i = 0; i < clients.length; i++) {
+                if (!(client = clients[i])) 
+                    continue;
+
+                aUser = client.handshake.user;
+
+                if (aUser['status'] === PLAYER_STATUS_READY) {
+                    count++;
+                }
+                else {
+                    client.emit('player ready', {
+                        'status': 0,
+                        'message': aUser['nickname'] + '玩家完成准备',
+                        'data': {
+                            'uid': aUser['_id']
+                        }
+                    });
+                }
+            }
+
+            if (count === room.seating) {
+                // launch game
+                console.log('launch game>>>>>>>>>>>>>>>>>>>>>>>>>>');
+            }
+            else {
+                callback && callback({
+                    'status': 0,
+                    'message': '准备成功'
+                });
+            }
         }
         catch(e) {
             callback && callback({
@@ -46,9 +73,10 @@ exports.ready = function() {
 
 exports.operate = function() {
     var user = this.handshake.user,
+        args = [].slice.call(arguments, 0),
         venue, room;
 
-    var callback = arguments[-1];
+    var callback = args.pop();
 
     try {
         exception.is_exist.user('player.operate', user);
@@ -58,15 +86,19 @@ exports.operate = function() {
         exception.is_exist.room('player.operate', room);
         
         try {
-            if (!arguments.length) {
+            if (!args.length) {
                 // process believe
-            }
-
-            if (typeof arguments[0] === 'string') {
+                // not params
+            } 
+            else if (typeof args[0] === 'string') {
                 // process turnon
+                // params: uid, index
+                // require player id and index of cards two params
             }
             else {
                 // process put cards
+                // params: cards, value
+                // require put cards and card value for this cards two params
             }
 
             callback && callback({
@@ -91,7 +123,7 @@ exports.operate = function() {
 
 exports.trusteeship = function(callback) {
     var user = this.handshake.user,
-        venue, room;
+        venue, room, clients, client, aUser, i;
 
     try {
         exception.is_exist.user('player.trusteeship', user);
@@ -110,7 +142,23 @@ exports.trusteeship = function(callback) {
         try {
             user['status'] = PLAYER_STATUS_TRUSTEESHIP;
 
-            // tell other clients in this room
+            clients = room.clients;
+
+            for (i = 0; i < clients.length; i++) {
+                client = clients[i];
+
+                if (client && client !== this) {
+                    aUser = client.handshake.user;
+
+                    client.emit('player trusteeship', {
+                        'status': 0,
+                        'message': aUser['nickname'] + '玩家开始托管',
+                        'data': {
+                            'uid': aUser['_id']
+                        }
+                    });
+                }
+            }
 
             callback && callback({
                 'status': 0,
@@ -134,7 +182,7 @@ exports.trusteeship = function(callback) {
 
 exports.cancelTrusteeship = function(callback) {
     var user = this.handshake.user,
-        venue, room;
+        venue, room, i, clients, client, aUser;
 
     try {
         exception.is_exist.user('player.cancelTrusteeship', user);
@@ -149,7 +197,23 @@ exports.cancelTrusteeship = function(callback) {
         try {
             user['status'] = PLAYER_STATUS_PLAYING;
 
-            // tell other clients in this room
+            clients = room.clients;
+
+            for (i = 0; i < clients.length; i++) {
+                client = clients[i];
+
+                if (client && client !== this) {
+                    aUser = client.handshake.user;
+
+                    client.emit('player cancel trusteeship', {
+                        'status': 0,
+                        'message': aUser['nickname'] + '玩家取消托管',
+                        'data': {
+                            'uid': aUser['_id']
+                        }
+                    });
+                }
+            }
 
             callback && callback({
                 'status': 0,
