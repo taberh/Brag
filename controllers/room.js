@@ -1,5 +1,4 @@
 
-var Brag = require('./brag');
 var venues = require('../models/venues').venues;
 var player = require('./player');
 var exception = require('../lib/exception');
@@ -255,7 +254,7 @@ Room.prototype = {
                         'status': 0,
                         'message': aClient.handshake.user['nickname'] + '玩家退出房间',
                         'data': {
-                            'playerID': aClient.handshake.user['_id']
+                            'uid': aClient.handshake.user['_id']
                         }
                     });
                 }
