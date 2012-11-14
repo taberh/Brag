@@ -51,7 +51,7 @@ exports.listen = function(httpServer, sessionStore) {
             if (client.handshake.user) {
                 switch(client.handshake.user['status']) {
                     case PLAYER_STATUS_PLAYING:
-                        player.trusteeship(function(){});
+                        player.trusteeship.call(this, function(){});
                         break;
                     case PLAYER_STATUS_WAIT:
                     case PLAYER_STATUS_READY:
