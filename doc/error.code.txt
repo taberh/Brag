@@ -17,3 +17,6 @@
 210     socket->room->leave->not find player in this room
 211     
 212
+
+220     game->start->alloc_cards->玩家不存在
+220

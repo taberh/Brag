@@ -94,6 +94,7 @@ exports.enter = function(venueID, roomID, password, callback) {
                 'status': 0,
                 'message': '进入房间',
                 'data': {
+                    'pIdx': room.clients.indexOf(this),
                     'players': players
                 }
             });
@@ -111,8 +112,6 @@ exports.enter = function(venueID, roomID, password, callback) {
             'status': e.code
         });
     }
-
-    
 };
 
 exports.leave = function(callback) {
@@ -232,6 +231,7 @@ Room.prototype = {
                     'status': 0,
                     'message': outputInfo['nickname'] + '玩家进入房间',
                     'data': {
+                        'pIdx': clients.indexOf(aClient),
                         'player': outputInfo
                     }
                 });
@@ -254,7 +254,7 @@ Room.prototype = {
                         'status': 0,
                         'message': aClient.handshake.user['nickname'] + '玩家退出房间',
                         'data': {
-                            'uid': aClient.handshake.user['_id']
+                            'pIdx': index
                         }
                     });
                 }
@@ -262,10 +262,18 @@ Room.prototype = {
 
             aClient.handshake.user['status'] = PLAYER_STATUS_NONE;
 
+            if (this.brag && this.brag.playing) {
+                this.interrupt();
+            }
+
             return;
         }
 
         throw new exception.Error('Room.prototype.leave', 210, '该房间内未找到玩家');
+    },
+    
+    interrupt: function() {
+        console.log('interruptXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
     }
 };
 

@@ -11,7 +11,7 @@ global.PLAYER_STATUS_TRUSTEESHIP = 4;
 
 exports.start = function(callback) {
     var user = this.handshake.user,
-        venue, room, brag, i, clients, client;
+        venue, room, brag;
 
     try {
         exception.is_exist.user('player.start', user);
@@ -23,24 +23,6 @@ exports.start = function(callback) {
         exception.is_exist.brag('player.start', brag);
 
         if (brag.start()) {
-            console.log('-------------------------------');
-
-            clients = room.clients;
-
-            for (i = 0; i < clients.length; i++) {
-                if (!(client = clients[i])) {
-                    room.interrupt();
-                    break;
-                }
-
-                client.emit('player operate', {
-                    'status': 0,
-                    'message': '开始游戏，player index: ' + room.brag.operator,
-                    'data': {
-                        'operator': room.brag.operator
-                    }
-                });
-            }
         }
     }
     catch(e) {
@@ -81,7 +63,7 @@ exports.ready = function(callback) {
                     'status': 0,
                     'message': user['nickname'] + '玩家完成准备',
                     'data': {
-                        'pIdx': clients.indexOf(this)
+                        'uid': user['_id']
                     }
                 });
             }
@@ -90,25 +72,22 @@ exports.ready = function(callback) {
         // if all client are ready, that distribute cards
         if (count === room.seating) {
             if (!room.brag) {
-                room.brag = new Brag(room.seating, venue.chip);
+                room.brag = new Brag(clients, venue.chip);
             }
 
             room.brag.distribute();
 
             for (i = 0; i < clients.length; i++) {
-                console.log(i);
                 if (!(client = clients[i])) {
                     room.interrupt();
                     break;
                 }
-                
-                client.handshake.user['status'] = PLAYER_STATUS_PLAYING;
 
                 client.emit('brag distribute', {
                     'status': 0,
                     'message': '发牌',
                     'data': {
-                        'cards': room.brag.outputCards(i)
+                        cards: Brag.outputCards(room.brag, i);
                     }
                 });
             }
@@ -142,25 +121,33 @@ exports.operate = function() {
         room = venue.rooms[user.rid];
         exception.is_exist.room('player.operate', room);
         
-        if (!args.length) {
-            // process believe
-            // not params
-        } 
-        else if (typeof args[0] === 'string') {
-            // process turnon
-            // params: uid, index
-            // require player id and index of cards two params
-        }
-        else {
-            // process put cards
-            // params: cards, value
-            // require put cards and card value for this cards two params
-        }
+        try {
+            if (!args.length) {
+                // process believe
+                // not params
+            } 
+            else if (typeof args[0] === 'string') {
+                // process turnon
+                // params: uid, index
+                // require player id and index of cards two params
+            }
+            else {
+                // process put cards
+                // params: cards, value
+                // require put cards and card value for this cards two params
+            }
 
-        callback && callback({
-            'status': 0,
-            'message': '操作成功'
-        });
+            callback && callback({
+                'status': 0,
+                'message': '操作成功'
+            });
+        }
+        catch(e) {
+            callback && callback({
+                'error': e,
+                'status': e.code
+            });
+        }
     }
     catch(e) {
         callback && callback({

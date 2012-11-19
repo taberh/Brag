@@ -1,19 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
 <script src="/socket.io/socket.io.js"></script>
-<script>
-var socket = io.connect('http://127.0.0.1/game');
+</head>
 
-/*socket.emit('room create', 100, 'room1', function(data) {
-    console.log(data);
-});*/
+<body>
+
+<p>Login:
+    <input type="button" onclick="login('1')" value="taber" />
+    <input type="button" onclick="login('2')" value="sandy" />
+    <input type="button" onclick="login('3')" value="tomlist" />
+</p>
+
+
+
+<script>
+var socket, user, players, index;
 
 function log() {
     console.log(arguments);
 }
 
-socket.on('room enter', log);
-socket.on('room leave', log);
+function login(openid) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/signin', true);
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var result = JSON.parse(xhr.responseText);
 
-socket.emit('room enter', 1, function() {
-    console.log(arguments);
-});
+            if (result.status === 0) {
+                login_success(result);
+            }
+
+            console.log(result.message);
+        }
+    }
+    xhr.send('openid='+openid);
+    console.log('login->openid=', openid);
+}
+
+function login_success(result) {
+    user = result.data;
+    socket = io.connect('http://127.0.0.1/game')
+    socket.on('room enter', enter);
+    socket.on('room leave', leave);
+    socket.on('player ready', ready);
+    socket.on('player trusteeship', log);
+    socket.on('player cancel trusteeship', log);
+    socket.on('player operate', operate);
+    socket.on('brag distribute', distribute);
+    socket.on('connect', connect);
+}
+
+function connect() {
+    console.log('connect.......');
+}
+
+function enter(data) {
+    if (data.status === 0) {
+        players[data.data['pIdx']] = data.data.player;
+    }
+
+    console.log(data.message);
+}
+
+function leave(data) {
+    if (data.status === 0) {
+        players[data.data['pIdx']] = null;
+    }
+
+    console.log(data.message);
+}
+
+function ready(data) {
+    if (data.status === 0) {
+        players[data.data['pIdx']]['status'] = 2;
+    }
+
+    console.log(data);
+}
+
+function distribute(data) {
+    if (data.status === 0) {
+        socket.emit('player start');
+    }
+
+    console.log(data);
+}
+
+function operate(data) {
+    console.log(data);
+}
+
+function doEnter() {
+    console.log('do enter....');
+    socket.emit('room enter', 1, function(result) {
+        if (result.status === 0) {
+            players = result.data.players;
+            index = result.data.pIdx;
+        }
+
+        console.log(result.message);
+    });
+}
+
+function doLeave() {
+}
+
+function doReady() {
+    console.log('do ready....');
+    socket.emit('player ready', function(result) {
+        if (result.status === 0) {
+            players[index]['status'] = 2;
+        }
+
+        console.log(result.message);
+    });
+}
+
+function doCreate() {
+
+}
+
 </script>
+</body>
+</html>
