@@ -2,6 +2,7 @@
 var Brag = require('./brag').Brag;
 var venues = require('../models/venues').venues;
 var exception = require('../lib/exception');
+var User = require('../models').User;
 
 global.PLAYER_STATUS_NONE = 0,
 global.PLAYER_STATUS_WAIT = 1,
@@ -48,7 +49,7 @@ exports.ready = function(callback) {
         // if all client are ready, that distribute cards
         if (count === room.seating) {
             if (!room.brag) {
-                room.brag = new Brag(room.seating, venue.chip);
+                room.brag = new Brag(room.seating, room.chip);
             }
 
             room.brag.start();
@@ -89,7 +90,7 @@ exports.ready = function(callback) {
 exports.operate = function() {
     var user = this.handshake.user,
         args = [].slice.call(arguments, 0),
-        venue, room, index, data, i, isOver, callback;
+        venue, room, index, data, i, isOver, callback, aUser;
 
     if (typeof args[args.length-1] === 'function')
         callback = args.pop();
@@ -118,10 +119,8 @@ exports.operate = function() {
 
         data = brag.operate.apply(brag, args);
 
-        console.log('brag process operate');
         isOver = brag.winner > -1;
 
-        console.log('brag process operate');
         for (i = 0; i < clients.length; i++) {
             if (!(client = clients[i])) {
                 room.interrupt();
@@ -130,6 +129,31 @@ exports.operate = function() {
 
             if (!isOver) {
                 data.cards = brag.outputCards(i);
+            }
+            else {
+                aUser = client.handshake.user;
+                aUser['status'] = PLAYER_STATUS_WAIT;
+
+                if (i === brag.winner) {
+                    aUser['score'] += (brag.chip*(brag.seating-1));
+                }
+                else {
+                    aUser['score'] -= brag.chip;
+                }
+
+                (function(score, openid) {
+                    User.findOne({'openid': openid}, function(err, user) {
+                        if (err) 
+                            return console.log(err.message)
+
+                        if (user) {
+                            user.score = score;
+                            user.save(function(err) {
+                                console.log('save user info ', !err ? 'success' : 'error');    
+                            });
+                        }
+                    });
+                }(aUser['score'], aUser['openid']));
             }
 
             client.emit('player operate', {
