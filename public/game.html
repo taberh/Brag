@@ -13,10 +13,27 @@
     <input type="button" onclick="login('3')" value="tomlist" />
 </p>
 
+<p>
+    <input type="button" value="Enter" onclick="doEnter()" />
+    <input type="button" value="Ready" onclick="doReady()" />
+</p>
+
+<p id="index"></p>
+
+<p>Value: <span id="value"></span></p>
+<p>Operate: <span id="operate"></span></p>
+<p id="cards-length"></p>
+<p id="cards-list"></p>
 
 
 <script>
 var socket, user, players, index;
+
+var elemIndex = document.getElementById('index');
+var elemCardsLength = document.getElementById('cards-length');
+var elemCardsList = document.getElementById('cards-list');
+var elemValue = document.getElementById('value');
+var elemOperate = document.getElementById('operate');
 
 function log() {
     console.log(arguments);
@@ -44,13 +61,13 @@ function login(openid) {
 function login_success(result) {
     user = result.data;
     socket = io.connect('http://127.0.0.1/game')
+    console.log('start connecting....');
     socket.on('room enter', enter);
     socket.on('room leave', leave);
     socket.on('player ready', ready);
+    socket.on('player operate', operate);
     socket.on('player trusteeship', log);
     socket.on('player cancel trusteeship', log);
-    socket.on('player operate', operate);
-    socket.on('brag distribute', distribute);
     socket.on('connect', connect);
 }
 
@@ -79,19 +96,50 @@ function ready(data) {
         players[data.data['pIdx']]['status'] = 2;
     }
 
-    console.log(data);
-}
-
-function distribute(data) {
-    if (data.status === 0) {
-        socket.emit('player start');
-    }
-
-    console.log(data);
+    console.log(data.message);
 }
 
 function operate(data) {
-    console.log(data);
+    if (data.status === 0) {
+
+        if (typeof data.data.winner !== 'undefined') {
+            alert(data.data.winner + ' Win!!!');
+        }
+        else {
+            var listString = '';
+
+            data.data.cards[index].forEach(function(card) {
+                listString = listString + card.index + ', ';
+            });
+
+            elemCardsList.innerHTML = listString;
+
+            var lengthString = '';
+
+            data.data.cards.forEach(function(card) {
+                var str;
+
+                if (typeof card === 'number') {
+                    str = card + ', ';
+                }
+                else {
+                    str = card.length + ', ';
+                }
+
+                lengthString += str;
+            });
+
+            elemCardsLength.innerHTML = lengthString;
+
+            if (typeof data.data.value !== 'undefined') {
+                elemValue.innerHTML = data.data.value;
+            }
+
+            elemOperate.innerHTML = data.data.operator;
+        }
+    }
+
+    console.log(data.message);
 }
 
 function doEnter() {
@@ -100,6 +148,7 @@ function doEnter() {
         if (result.status === 0) {
             players = result.data.players;
             index = result.data.pIdx;
+            elemIndex.innerHTML = index;
         }
 
         console.log(result.message);
@@ -122,6 +171,11 @@ function doReady() {
 
 function doCreate() {
 
+}
+
+function doOperate() {
+    console.log('do operate....');
+    socket.emit('player operate', arguments[0], arguments[1]);
 }
 
 </script>
