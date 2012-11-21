@@ -9,48 +9,6 @@ global.PLAYER_STATUS_READY = 2,
 global.PLAYER_STATUS_PLAYING = 3,
 global.PLAYER_STATUS_TRUSTEESHIP = 4;
 
-exports.start = function(callback) {
-    var user = this.handshake.user,
-        venue, room, brag, i, clients, client;
-
-    try {
-        exception.is_exist.user('player.start', user);
-        venue = venues[user.vid];
-        exception.is_exist.venue('player.start', venue);
-        room = venue.rooms[user.rid];
-        exception.is_exist.room('player.start', room);
-        brag = room.brag;
-        exception.is_exist.brag('player.start', brag);
-
-        if (brag.start()) {
-            console.log('-------------------------------');
-
-            clients = room.clients;
-
-            for (i = 0; i < clients.length; i++) {
-                if (!(client = clients[i])) {
-                    room.interrupt();
-                    break;
-                }
-
-                client.emit('player operate', {
-                    'status': 0,
-                    'message': '开始游戏，player index: ' + room.brag.operator,
-                    'data': {
-                        'operator': room.brag.operator
-                    }
-                });
-            }
-        }
-    }
-    catch(e) {
-        callback && callback({
-            'error': e,
-            'status': e.code
-        });
-    }
-};
-
 exports.ready = function(callback) {
     var user = this.handshake.user, count = 0,
         venue, room, clients, client, i, aUser;
@@ -93,21 +51,21 @@ exports.ready = function(callback) {
                 room.brag = new Brag(room.seating, venue.chip);
             }
 
-            room.brag.distribute();
-
+            room.brag.start();
+            
             for (i = 0; i < clients.length; i++) {
-                console.log(i);
                 if (!(client = clients[i])) {
                     room.interrupt();
                     break;
                 }
-                
+
                 client.handshake.user['status'] = PLAYER_STATUS_PLAYING;
 
-                client.emit('brag distribute', {
+                client.emit('player operate', {
                     'status': 0,
-                    'message': '发牌',
+                    'message': '开始游戏，player index: ' + room.brag.operator,
                     'data': {
+                        'operator': room.brag.operator,
                         'cards': room.brag.outputCards(i)
                     }
                 });
@@ -131,9 +89,10 @@ exports.ready = function(callback) {
 exports.operate = function() {
     var user = this.handshake.user,
         args = [].slice.call(arguments, 0),
-        venue, room;
+        venue, room, index, data, i, isOver, callback;
 
-    var callback = args.pop();
+    if (typeof args[args.length-1] === 'function')
+        callback = args.pop();
 
     try {
         exception.is_exist.user('player.operate', user);
@@ -141,26 +100,44 @@ exports.operate = function() {
         exception.is_exist.venue('player.operate', venue);
         room = venue.rooms[user.rid];
         exception.is_exist.room('player.operate', room);
-        
-        if (!args.length) {
-            // process believe
-            // not params
-        } 
-        else if (typeof args[0] === 'string') {
-            // process turnon
-            // params: uid, index
-            // require player id and index of cards two params
-        }
-        else {
-            // process put cards
-            // params: cards, value
-            // require put cards and card value for this cards two params
+        brag = room.brag;
+        exception.is_exist.brag('player.operate', brag);
+
+        clients = room.clients;
+        index = clients.indexOf(this);
+
+        if (index < 0) {
+            room.interrupt();
+            throw new utils.Error('player.operate', 200, '未找到玩家');
         }
 
-        callback && callback({
-            'status': 0,
-            'message': '操作成功'
-        });
+        if (index !== brag.operator)
+            throw new utils.Error('player.operate', 200, '还未到你出牌，请==');
+
+        args.unshift(index);
+
+        data = brag.operate.apply(brag, args);
+
+        console.log('brag process operate');
+        isOver = brag.winner > -1;
+
+        console.log('brag process operate');
+        for (i = 0; i < clients.length; i++) {
+            if (!(client = clients[i])) {
+                room.interrupt();
+                throw new utils.Error('player.operate', 200, '未找到玩家');
+            }
+
+            if (!isOver) {
+                data.cards = brag.outputCards(i);
+            }
+
+            client.emit('player operate', {
+                'status': 0,
+                'message': '操作成功',
+                'data': data
+            });
+        }
     }
     catch(e) {
         callback && callback({
