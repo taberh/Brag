@@ -29,15 +29,17 @@ exports.config = {
     venues: [
         {
             name: '自由区',
-            min_score: 0,
-        },
-        {
-            name: '新手区',
             min_score: 0
         },
         {
+            name: '新手区',
+            min_score: 0,
+            chip: 1
+        },
+        {
             name: '初级场', 
-            min_score: 10
+            min_score: 10,
+            chip: 3
         }
     ]
 };
