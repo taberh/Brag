@@ -54,7 +54,6 @@ exports.listen = function(httpServer, sessionStore) {
         client.on('room enter', Room.enter);
         client.on('room leave', Room.leave);
         client.on('player ready', Player.ready);
-        client.on('player start', Player.start);
         client.on('player operate', Player.operate);
         //client.on('player trusteeship', Player.trusteeship);
         //client.on('player cancel trusteeship', Player.cancelTrusteeship);
