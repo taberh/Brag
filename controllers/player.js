@@ -1,7 +1,7 @@
 
 var Brag = require('./brag').Brag;
-var models = require('../models');
 var exception = require('../lib/exception');
+var models = require('../models');
 var venues = models.Venue.venues;
 var User = models.User;
 
@@ -161,120 +161,6 @@ exports.operate = function() {
                 'status': 0,
                 'message': '操作成功',
                 'data': data
-            });
-        }
-    }
-    catch(e) {
-        callback && callback({
-            'error': e,
-            'status': e.code
-        });
-    }
-};
-
-exports.trusteeship = function(callback) {
-    var user = this.handshake.user,
-        venue, room, clients, client, aUser, i;
-
-    try {
-        exception.is_exist.user('player.trusteeship', user);
-
-        if (user['status'] === PLAYER_STATUS_TRUSTEESHIP) 
-            return;
-
-        exception.can_trusteeship('player.trusteeship', user);
-        
-        venue = venues[user.vid];
-        exception.is_exist.venue('player.trusteeship', venue);
-
-        room = venue.rooms[user.rid];
-        exception.is_exist.room('player.trusteeship', room);
-
-        try {
-            user['status'] = PLAYER_STATUS_TRUSTEESHIP;
-
-            clients = room.clients;
-
-            for (i = 0; i < clients.length; i++) {
-                client = clients[i];
-
-                if (client && client !== this) {
-                    aUser = client.handshake.user;
-
-                    client.emit('player trusteeship', {
-                        'status': 0,
-                        'message': aUser['nickname'] + '玩家开始托管',
-                        'data': {
-                            'uid': aUser['_id']
-                        }
-                    });
-                }
-            }
-
-            callback && callback({
-                'status': 0,
-                'message': '托管成功'
-            });
-        }
-        catch(e) {
-            callback && callback({
-                'error': e,
-                'status': e.code
-            });
-        }
-    }
-    catch(e) {
-        callback && callback({
-            'error': e,
-            'status': e.code
-        });
-    }
-};
-
-exports.cancelTrusteeship = function(callback) {
-    var user = this.handshake.user,
-        venue, room, i, clients, client, aUser;
-
-    try {
-        exception.is_exist.user('player.cancelTrusteeship', user);
-        exception.is_trusteeship('player.cancelTrusteeship', user);
-
-        venue = venues[user.vid];
-        exception.is_exist.venue('player.cancelTrusteeship', venue);
-
-        room = venue.rooms[user.rid];
-        exception.is_exist.room('player.cancelTrusteeship', room);
-        
-        try {
-            user['status'] = PLAYER_STATUS_PLAYING;
-
-            clients = room.clients;
-
-            for (i = 0; i < clients.length; i++) {
-                client = clients[i];
-
-                if (client && client !== this) {
-                    aUser = client.handshake.user;
-
-                    client.emit('player cancel trusteeship', {
-                        'status': 0,
-                        'message': aUser['nickname'] + '玩家取消托管',
-                        'data': {
-                            'uid': aUser['_id']
-                        }
-                    });
-                }
-            }
-
-            callback && callback({
-                'status': 0,
-                'message': '取消托管成功'
-            });
-        }
-        catch(e) {
-            callback && callback({
-                'error': e,
-                'status': e.code
             });
         }
     }
