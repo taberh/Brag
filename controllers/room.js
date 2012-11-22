@@ -77,34 +77,26 @@ exports.enter = function(venueID, roomID, password, callback) {
         user.rid = roomID;
         venue.online++;
 
-        try {
-            room.enter(this);
+        room.enter(this);
 
-            players = [];
+        players = [];
 
-            room.clients.forEach(function(client) {
-                if (client) {
-                    client = output_user_info(client);
-                }
+        room.clients.forEach(function(client) {
+            if (client) {
+                client = output_user_info(client);
+            }
 
-                players.push(client);
-            });
+            players.push(client);
+        });
 
-            callback && callback({
-                'status': 0,
-                'message': '进入房间',
-                'data': {
-                    'pIdx': room.clients.indexOf(this),
-                    'players': players
-                }
-            });
-        } 
-        catch(e) {
-            callback && callback({
-                'error': e,
-                'status': e.code
-            });
-        }
+        callback && callback({
+            'status': 0,
+            'message': '进入房间',
+            'data': {
+                'pIdx': room.clients.indexOf(this),
+                'players': players
+            }
+        });
     }
     catch(e) {
         callback && callback({
@@ -121,7 +113,6 @@ exports.leave = function(callback) {
     try {
         exception.is_exist.user('room.leave', user);
         exception.is_in_room('room.leave', user);
-        exception.can_leave('room.leave', user);
 
         venue = venues[user.vid];
         exception.is_exist.venue('room.venue', venue);
@@ -129,29 +120,25 @@ exports.leave = function(callback) {
         room = venue.rooms[user.rid];
         exception.is_exist.room('room.leave', room);
 
-        try {
-            room.leave(this);
+        room.leave(this);
 
-            if (!room.hasPlayer())
-                delete venue.rooms[user.rid];
+        if (room.brag && room.brag.playing)
+            venue.online -= 2;
 
-            delete user.vid;
-            delete user.rid;
-            venue.online--;
+        if (!room.hasPlayer())
+            delete venue.rooms[user.rid];
 
-            callback && callback({
-                'status': 0,
-                'message': '退出成功'
-            });
-        }
-        catch(e) {
-            callback && callback({
-                'status': e.code,
-                'message': e.message
-            });
-        }
+        delete user.vid;
+        delete user.rid;
+        venue.online--;
+
+        callback && callback({
+            'status': 0,
+            'message': '退出成功'
+        });
     }
     catch(e) {
+        console.log(e, e.domain);
         callback && callback({
             'error': e,
             'status': e.code
@@ -246,9 +233,15 @@ Room.prototype = {
             index = clients.indexOf(aClient);
 
         if (index >= 0) {
+            if (this.brag && this.brag.playing) {
+                this.interrupt(aClient);
+                return;
+            }
+
+            aClient.handshake.user['status'] = PLAYER_STATUS_NONE;
             clients[index] = null;
             
-            for (var i = 0; i < clients.length; i++) {
+            for (i = 0; i < clients.length; i++) {
                 client = clients[i];
 
                 if (client && client !== aClient) {
@@ -262,20 +255,37 @@ Room.prototype = {
                 }
             }
 
-            aClient.handshake.user['status'] = PLAYER_STATUS_NONE;
-
-            if (this.brag && this.brag.playing) {
-                this.interrupt();
-            }
-
             return;
         }
 
         throw new exception.Error('Room.prototype.leave', 210, '该房间内未找到玩家');
     },
     
-    interrupt: function() {
-        console.log('interruptXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+    interrupt: function(aClient) {
+        var clients = this.clients,
+            client, i, index;
+
+        index = clients.indexOf(aClient);
+
+        for (i = 0; i < clients.length; i++) {
+            client = clients[i];
+
+            if (client && client !== aClient) {
+                client.handshake.user['status'] = PLAYER_STATUS_NONE;
+                delete client.handshake.user['rid'];
+                delete client.handshake.user['vid'];
+
+                client.emit('room interrupt', {
+                    'status': 0,
+                    'message': aClient.handshake.user['nickname'] + '玩家强行退出，游戏中断',
+                    'data': {
+                        'pIdx': index
+                    }
+                });
+            }
+        }
+
+        this.clients = [];
     }
 };
 
