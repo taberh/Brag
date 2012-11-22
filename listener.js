@@ -59,7 +59,9 @@ exports.register = function(httpServer, sessionStore) {
         client.on('player operate', Player.operate);
         client.on('disconnect', function () {
             if (client.handshake.user) {
-                Room.leave.call(this);
+                Room.leave.call(this, function() {
+                    console.log(arguments);
+                });
             }
         });
     });
