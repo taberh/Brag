@@ -1,6 +1,6 @@
 
-var venues = require('../models/venues').venues;
-var player = require('./player');
+var models = require('../models');
+var venues = models.Venue.venues;
 var exception = require('../lib/exception');
 
 exports.create = function(chip, name, password, callback) {
@@ -84,7 +84,7 @@ exports.enter = function(venueID, roomID, password, callback) {
 
             room.clients.forEach(function(client) {
                 if (client) {
-                    client = player.output_user_info(client);
+                    client = output_user_info(client);
                 }
 
                 players.push(client);
@@ -159,8 +159,6 @@ exports.leave = function(callback) {
     }
 };
 
-
-
 function Room(chip, owner, name, password) {
     this.owner = owner;
     this.chip = chip;
@@ -172,6 +170,7 @@ function Room(chip, owner, name, password) {
 
 Room.prototype = {
     constructor: Room,
+
     hasSeat: function() {
         if (this.clients.length < this.seating) {
             return true;
@@ -186,6 +185,7 @@ Room.prototype = {
         
         return false;
     },
+
     hasPlayer: function() {
         if (!this.clients.length)
             return false;
@@ -198,6 +198,7 @@ Room.prototype = {
 
         return false;
     },
+
     enter: function(aClient) {
         var i, client, outputInfo, 
             clients = this.clients;
@@ -221,7 +222,7 @@ Room.prototype = {
         }
 
         aClient.handshake.user['status'] = PLAYER_STATUS_WAIT;
-        outputInfo = player.output_user_info(aClient);
+        outputInfo = output_user_info(aClient);
 
         for (i = 0; i < clients.length; i++) {
             client = clients[i];
@@ -238,6 +239,7 @@ Room.prototype = {
             }
         }
     },
+
     leave: function(aClient) {
         var i, client,
             clients = this.clients,
@@ -282,11 +284,13 @@ Room.prototype = {
  */
 function gen_room_id_in_venues(index) {
     var rooms = venues[index].rooms,
-        len = rooms.length, i = 0;
+        i = 0,
+        l = rooms.length;
 
-    while(i < len) {
+    while(i < l) {
         if (typeof rooms[i] === 'undefined')
             break;
+
         i++;
     }
 
@@ -298,17 +302,38 @@ function gen_room_id_in_venues(index) {
  */
 function alloc_room_id_in_venues(index) {
     var rooms = venues[index].rooms,
-        len = rooms.length, i = 0, room;
+        room,
+        i = 0,
+        l = rooms.length;
 
-    while (i < len) {
+    while (i < l) {
         room = rooms[i];
+
         if (room instanceof Room && room.hasSeat())
             break;
 
         i++;
     }
 
-    return i !== len ? 
-                i : 
-                gen_room_id_in_venues(index);
+    return i !== l ? 
+            i : 
+            gen_room_id_in_venues(index);
 }
+
+function output_user_info(client) {
+    var user = client.handshake.user;
+
+    if (!user) return null;
+
+    return {
+        'id': user['_id'],
+        'nickname': user['nickname'],
+        'openid': user['openid'],
+        'sex': user['sex'],
+        'avatar_url': user['avatar_url'],
+        'score': user['score'],
+        'count_win': user['count_win'],
+        'count_lose': user['count_lost'],
+        'status': user['status']
+    }
+};

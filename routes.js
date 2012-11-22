@@ -1,6 +1,5 @@
 /**
- * Brag - route.js
- * Copyright(c) 2012 taber.huang <taber.huang@gmail.com>
+ * Route
  */
 
 /**
@@ -8,22 +7,21 @@
  */
 
 var sign = require('./controllers/sign');
-var user = require('./controllers/user');
-var venues = require('./controllers/venues');
+var venue = require('./controllers/venue');
 
 module.exports = function(app) {
 
-    // api
+    // sign
     app.post('/api/signin', sign.signin);
     app.post('/api/signup', sign.signup);
     app.get('/api/logout', sign.logout);
-    app.get('/api/user/info', user.info);
-    app.get('/api/venues', venues.list);
-    app.post('/api/venues', venues.list);
 
+    // venues
+    app.get('/api/venues', venue.list);
+    app.post('/api/venues', venue.list);
+
+    // *
     app.get('*', function(req, res) {
-            console.log(req.headers);
-            console.log(req.session);
         res.render('404');
     });
 };

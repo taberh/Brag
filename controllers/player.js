@@ -1,8 +1,9 @@
 
 var Brag = require('./brag').Brag;
-var venues = require('../models/venues').venues;
+var models = require('../models');
 var exception = require('../lib/exception');
-var User = require('../models').User;
+var venues = models.Venue.venues;
+var User = models.User;
 
 global.PLAYER_STATUS_NONE = 0,
 global.PLAYER_STATUS_WAIT = 1,
@@ -282,23 +283,5 @@ exports.cancelTrusteeship = function(callback) {
             'error': e,
             'status': e.code
         });
-    }
-};
-
-exports.output_user_info = function(client) {
-    var user = client.handshake.user;
-
-    if (!user) return null;
-
-    return {
-        '_id': user['_id'],
-        'nickname': user['nickname'],
-        'openid': user['openid'],
-        'sex': user['sex'],
-        'avatar_url': user['avatar_url'],
-        'score': user['score'],
-        'count_win': user['count_win'],
-        'count_lose': user['count_lost'],
-        'status': user['status']
     }
 };

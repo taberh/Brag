@@ -3,19 +3,22 @@
  * Module dependencies.
  */
 
-var express = require('express')
-  , routes = require('./routes')
-  , http = require('http')
-  , path = require('path')
-  , config = require('./config').config
-  , socket_io_listener = require('./listener')
-  , ejs_locals = require('ejs-locals')
-  , connect = require('express/node_modules/connect')
-  , MemoryStore = connect.session.MemoryStore;
+var express = require('express'), 
+    http = require('http'),
+    path = require('path'),
+    ejs_locals = require('ejs-locals'),
+    connect = require('express/node_modules/connect'),
+    MemoryStore = connect.session.MemoryStore,
+    config = require('./config').config,
+    routes = require('./routes'),
+    listener = require('./listener');
 
-var app = express();
-var sessionStore = new MemoryStore({ reapInterval: 6000 * 10 });
+var app = express(), server,
+    sessionStore = new MemoryStore({ reapInterval: 6000 * 10 });
 
+/**
+ * Config express server.
+ */
 app.configure(function(){
   app.set('port', process.env.PORT || config.port);
   app.set('views', __dirname + '/views');
@@ -30,7 +33,6 @@ app.configure(function(){
     secret: config.session_secret,  
     store: sessionStore 
   }));
-  app.use(require('less-middleware')({ src: __dirname + '/public' }));
   app.use(express.static(path.join(__dirname, 'public')));
   app.use(app.router);
 });
@@ -44,8 +46,8 @@ app.locals._layoutFile = '/layout.ejs';
 
 routes(app);
 
-var server = http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'), "NODE ENV: " + app.get('env'));
+server = http.createServer(app).listen(app.get('port'), function(){
+  console.log("Express server listening on port " + app.get('port'));
 });
 
-socket_io_listener.listen(server, sessionStore);
+listener.register(server, sessionStore);

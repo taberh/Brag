@@ -1,5 +1,5 @@
 
-var venues = require('../models/venues').venues;
+var venues = require('../models').Venue.venues;
 
 exports.list = function(req, res, next) {
     var data = [];

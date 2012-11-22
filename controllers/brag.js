@@ -1,7 +1,8 @@
 
 var utils = require('../lib/utils');
-var Cards = require('../models/cards');
 var exception = require('../lib/exception');
+var models = require('../models');
+var Cards = models.Cards;
 
 exports.Brag = Brag;
 
@@ -25,7 +26,7 @@ Brag.prototype = {
 
     start: function() {
         if (this.playing) 
-            throw new utils.Error('Brag.prototype.distribute', 220, '游戏中');
+            throw new exception.Error('Brag.prototype.distribute', 220, '游戏中');
 
         distribute.call(this);
         init_operator.call(this);
@@ -44,7 +45,7 @@ Brag.prototype = {
             return false;
 
         if (!this._pool.length && !arguments[1] && !arguments[1].length) {
-            throw new utils.Error('Brag.prorotype.operate', 220, '参数错误');
+            throw new exception.Error('Brag.prorotype.operate', 220, '参数错误');
         }
 
         console.log('operate: ', arguments);
@@ -135,7 +136,7 @@ function operate_turnon(operator, owner, index) {
     o = this._pool[this._pool.length - h];
 
     if (!o.cards || !o.cards.length) {
-        throw new utils.Error('operate_turnon', 220, '参数错误');
+        throw new exception.Error('operate_turnon', 220, '参数错误');
     }
 
     c = Cards.get(o.cards[index]);
@@ -215,7 +216,7 @@ function distribute() {
         i, index;
 
     if (this.playing) 
-        throw new utils.Error('Brag.prototype.distribute', 220, '游戏中');
+        throw new exception.Error('Brag.prototype.distribute', 220, '游戏中');
 
     for (i = 0; i < sLen; i++)
         this._cards[i] = [];
@@ -244,6 +245,6 @@ function init_operator() {
 
     if (this.operator < 0) {
         // throw error 没找到红心3，Brag内部数据错误
-        throw new utils.Error('Brag.prototype.start', 220, '卡片数据错误');
+        throw new exception.Error('Brag.prototype.start', 220, '卡片数据错误');
     }
 }

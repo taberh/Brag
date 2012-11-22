@@ -17,8 +17,6 @@ exports.config = {
         '<meta name="author" content="taber.huang" />'
     ],
 
-    //upload_dir: path.join(__dirname, 'public', 'user_data', 'images'),
-
     db: 'mongodb://127.0.0.1/brag_game_dev',
     session_secret: 'tongzi_brag_game',
     auth_cookie_name: 'tongzi_brag_game',
