@@ -64,10 +64,9 @@ function login_success(result) {
     console.log('start connecting....');
     socket.on('room enter', enter);
     socket.on('room leave', leave);
+    socket.on('room interrupt', interrupt);
     socket.on('player ready', ready);
     socket.on('player operate', operate);
-    socket.on('player trusteeship', log);
-    socket.on('player cancel trusteeship', log);
     socket.on('connect', connect);
 }
 
@@ -86,6 +85,14 @@ function enter(data) {
 function leave(data) {
     if (data.status === 0) {
         players[data.data['pIdx']] = null;
+    }
+
+    console.log(data.message);
+}
+
+function interrupt(data) {
+    if (data.status === 0) {
+        alert(data.message+ '   '+data.data.pIdx);
     }
 
     console.log(data.message);
