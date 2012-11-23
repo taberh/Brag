@@ -6,6 +6,17 @@ var Cards = models.Cards;
 
 exports.Brag = Brag;
 
+/**
+ * @class
+ * @contructor
+ * @prototype {Number} seating
+ * @prototype {Number} chip
+ * @prototype {Bool} playing
+ * @prototype {Number} operator
+ * @prototype {Number} winner
+ * @param {Number} seating
+ * @param {Number} chip
+ */
 function Brag(seating, chip) {
     if (arguments.length !== 2) 
         return;
@@ -113,6 +124,11 @@ Brag.prototype = {
     }
 };
 
+/**
+ * Process player operate of believe.
+ * @function
+ * @private
+ */
 function operate_believe(operator) {
     this._pool.push({'owner': operator});
     this.operator = ++this.operator % this.seating;
@@ -125,6 +141,11 @@ function operate_believe(operator) {
     }
 }
 
+/**
+ * Process player operate of turnon
+ * @function
+ * @private
+ */
 function operate_turnon(operator, owner, index) {
     var h = owner - operator,
         o, c;
@@ -154,6 +175,11 @@ function operate_turnon(operator, owner, index) {
     this._value = 0;
 }
 
+/**
+ * Process player operate of throw cards
+ * @function
+ * @private
+ */
 function operate_throw(operator, cards, value) {
     var _this = this;
 
@@ -182,6 +208,12 @@ function operate_throw(operator, cards, value) {
     this.operator = ++this.operator % this.seating;
 }
 
+/**
+ * Transfer cards given player in game pool.
+ * @function
+ * @private
+ * @param {Number} pIdx player seating index.
+ */
 function transfer_cards(pIdx) {
     var i, l, o,
         pool = this._pool,
@@ -196,6 +228,13 @@ function transfer_cards(pIdx) {
     }
 }
 
+/**
+ * Check up game is or not over.
+ * @function
+ * @private
+ * @param {Number} pIdx player seating index.
+ * @returns {Bool}
+ */
 function is_over() {
     if (this._pool.length > 0) return false;
 
@@ -209,6 +248,11 @@ function is_over() {
     return false;
 }
 
+/**
+ * Alloc cards.
+ * @function
+ * @private
+ */
 function distribute() {
     var sLen = this.seating,
         cLen = Cards.length(),
@@ -232,6 +276,11 @@ function distribute() {
     console.log('alloc cards complete: ', this._cards);
 }
 
+/**
+ * Find first operator.
+ * @function
+ * @private
+ */
 function init_operator() {
     var cards = this._cards, 
         card, i, j;

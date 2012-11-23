@@ -11,6 +11,10 @@ global.PLAYER_STATUS_READY = 2,
 global.PLAYER_STATUS_PLAYING = 3,
 global.PLAYER_STATUS_TRUSTEESHIP = 4;
 
+/**
+ * @static
+ * @param {Function} [callback]
+ */
 exports.ready = function(callback) {
     var user = this.handshake.user, count = 0,
         venue, room, clients, client, i, aUser;
@@ -88,6 +92,9 @@ exports.ready = function(callback) {
     }
 };
 
+/**
+ * @static
+ */
 exports.operate = function() {
     var user = this.handshake.user,
         args = [].slice.call(arguments, 0),

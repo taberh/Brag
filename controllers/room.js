@@ -315,6 +315,7 @@ Room.prototype = {
 /**
  * 生成房间ID: 从当前场馆中查找未被使用的房间ID
  * @function
+ * @private
  * @param {Number} index venues index.
  * @returns {Number} room id.
  */
@@ -336,6 +337,7 @@ function gen_room_id_in_venues(index) {
 /**
  * 分配房间ID: 从当前场馆中查找有空座位的房间ID，没找到则创建新房间ID
  * @function
+ * @private
  * @param {Number} index venues index.
  * @returns {Number} room id.
  */
@@ -361,6 +363,7 @@ function alloc_room_id_in_venues(index) {
 
 /**
  * @function
+ * @private
  * @param {Object} socket client
  * @returns {Object} return client account info
  */
