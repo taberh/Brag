@@ -11,6 +11,12 @@ var socket_io = require('socket.io')
 exports.register = function(httpServer, sessionStore) {
     var io = socket_io.listen(httpServer);
 
+    io.configure('production', function() {
+        io.enable('browser client etag');
+        io.enable('browser client gzip');
+        io.enable('browser client minification');
+    });
+
     io.set('authorization', function(data, callback) {
         if (data.query && data.query.openid) {
             data.user = User.findOne({ 
