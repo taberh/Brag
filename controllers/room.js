@@ -1,21 +1,28 @@
 
+/**
+ * Modeules dependencies.
+ */
+
 var models = require('../models');
 var venues = models.Venue.venues;
 var exception = require('../lib/exception');
 
-exports.create = function(chip, name, password, callback) {
+/**
+ * @static
+ * @param {Object} data 
+ * @param {Number} data.chip   
+ * @param {String} [data.name]
+ * @prama {String} [data.password]
+ * @prama {Function} [callback]
+ */
+exports.create = function(data, callback) {
     var user = this.handshake.user,
         room, roomID;
-
-    if (!callback && typeof password === 'function') {
-        callback = password;
-        password = undefined;
-    }
 
     try {
         exception.is_exist.user('room.create', user);
 
-        room = new Room(chip, user['_id'], name, password);
+        room = new Room(data.chip, user['_id'], data.name, data.password);
         roomID = gen_room_id_in_venues(0);
         venues[0].rooms[roomID] = room;
 
@@ -33,39 +40,42 @@ exports.create = function(chip, name, password, callback) {
             'status': e.code
         });
     }
-};
+}; 
 
-exports.enter = function(venueID, roomID, password, callback) {
+/**
+ * @static
+ * @param {Object} data
+ * @param {Number} data.vid venue id
+ * @param {Number} [data.rid] room id
+ * @param {String} [data.password]
+ * @prama {Function} [callback]
+ */
+exports.enter = function(data, callback) {
     var user = this.handshake.user,
-        venue = venues[venueID],
+        venue = venues[data.vid],
         room, players;
-
-    if (!callback && typeof roomID === 'function') {
-        callback = roomID;
-        roomID = undefined;
-    }
 
     try {
         exception.is_exist.user('room.enter', user);
         exception.is_not_in_room('room.enter', user);
         exception.is_exist.venue('room.enter', venue);
         
-        if (typeof roomID !== 'undefined') {
-            room = venue.rooms[roomID];
+        if (typeof data.rid !== 'undefined') {
+            room = venue.rooms[data.rid];
             exception.is_exist.room('room.enter', room);
         }
         else {
-            roomID = alloc_room_id_in_venues(venueID);
-            room = venue.rooms[roomID];
+            data.rid = alloc_room_id_in_venues(data.vid);
+            room = venue.rooms[data.rid];
 
             if (!room) {
                 room = new Room(venue.chip);
-                venue.rooms[roomID] = room;
+                venue.rooms[data.rid] = room;
             }
         }
 
         if (!room.password) {
-            if (room.password != password) {
+            if (room.password != data.password) {
                 return callback && callback({
                     'status': 202,
                     'message': '房间密码不正确'
@@ -73,8 +83,8 @@ exports.enter = function(venueID, roomID, password, callback) {
             }
         }
 
-        user.vid = venueID;
-        user.rid = roomID;
+        user.vid = data.vid;
+        user.rid = data.rid;
         venue.online++;
 
         room.enter(this);
@@ -106,6 +116,10 @@ exports.enter = function(venueID, roomID, password, callback) {
     }
 };
 
+/**
+ * @static
+ * @param {Function} [callback]
+ */
 exports.leave = function(callback) {
     var user = this.handshake.user,
         venue, room;
@@ -138,7 +152,6 @@ exports.leave = function(callback) {
         });
     }
     catch(e) {
-        console.log(e, e.domain);
         callback && callback({
             'error': e,
             'status': e.code
@@ -146,6 +159,14 @@ exports.leave = function(callback) {
     }
 };
 
+/**
+ * @class Room 
+ * @constructor
+ * @param {Number} chip
+ * @param {String} [uid]
+ * @param {String} [name]
+ * @param {String} [password]
+ */
 function Room(chip, owner, name, password) {
     this.owner = owner;
     this.chip = chip;
@@ -291,8 +312,11 @@ Room.prototype = {
     }
 };
 
-/*
- *  生成房间ID: 从当前场馆中查找未被使用的房间ID
+/**
+ * 生成房间ID: 从当前场馆中查找未被使用的房间ID
+ * @function
+ * @param {Number} index venues index.
+ * @returns {Number} room id.
  */
 function gen_room_id_in_venues(index) {
     var rooms = venues[index].rooms,
@@ -309,8 +333,11 @@ function gen_room_id_in_venues(index) {
     return i;
 }
 
-/*
- *  分配房间ID: 从当前场馆中查找有空座位的房间ID，没找到则创建新房间ID
+/**
+ * 分配房间ID: 从当前场馆中查找有空座位的房间ID，没找到则创建新房间ID
+ * @function
+ * @param {Number} index venues index.
+ * @returns {Number} room id.
  */
 function alloc_room_id_in_venues(index) {
     var rooms = venues[index].rooms,
@@ -332,6 +359,11 @@ function alloc_room_id_in_venues(index) {
             gen_room_id_in_venues(index);
 }
 
+/**
+ * @function
+ * @param {Object} socket client
+ * @returns {Object} return client account info
+ */
 function output_user_info(client) {
     var user = client.handshake.user;
 
