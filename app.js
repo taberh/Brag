@@ -5,7 +5,6 @@
 
 var express = require('express'), 
     http = require('http'),
-    path = require('path'),
     ejs_locals = require('ejs-locals'),
     connect = require('express/node_modules/connect'),
     MemoryStore = connect.session.MemoryStore,
@@ -14,11 +13,26 @@ var express = require('express'),
     listener = require('./listener');
 
 var app = express(), server,
-    sessionStore = new MemoryStore({ reapInterval: 6000 * 10 });
+    sessionStore = new MemoryStore({ reapInterval: 6000 * 10 }),
+    maxAge = 1000 * 60 * 60 * 24 * 365,
+    staticDir = __dirname + '/public';
 
 /**
  * Config express server.
  */
+app.configure('development', function(){
+  app.use(express.static(staticDir));
+  app.use(express.errorHandler({
+    dumpExceptions: true,
+    showStack: true
+  }));
+});
+
+app.configure('production', function() {
+  app.use(express.static(staticDir, { maxAge: maxAge }));
+  app.use(express.errorHandler());
+});
+
 app.configure(function(){
   app.set('port', process.env.PORT || config.port);
   app.set('views', __dirname + '/views');
@@ -33,13 +47,8 @@ app.configure(function(){
     secret: config.session_secret,  
     store: sessionStore 
   }));
-  app.use(express.static(path.join(__dirname, 'public')));
   app.use(app.router);
-});
-
-app.configure('development', function(){
-  app.use(express.errorHandler());
-});
+})
 
 app.locals.config = config;
 app.locals._layoutFile = '/layout.ejs';
@@ -47,7 +56,7 @@ app.locals._layoutFile = '/layout.ejs';
 routes(app);
 
 server = http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
+  console.log("Express server listening on port " + app.get('port'), "NODE_ENV: ", process.env.NODE_ENV);
 });
 
 listener.register(server, sessionStore);
