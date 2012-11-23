@@ -20,6 +20,10 @@ module.exports = function(app) {
     app.get('/api/venues', venue.list);
     app.post('/api/venues', venue.list);
 
+    app.get('/', function(req, res) {
+        res.render('index');
+    });
+
     // *
     app.get('*', function(req, res) {
         res.render('404');
