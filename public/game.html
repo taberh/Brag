@@ -151,7 +151,9 @@ function operate(data) {
 
 function doEnter() {
     console.log('do enter....');
-    socket.emit('room enter', 1, function(result) {
+    socket.emit('room enter', {
+        'vid': 1
+    }, function(result) {
         if (result.status === 0) {
             players = result.data.players;
             index = result.data.pIdx;
@@ -182,7 +184,20 @@ function doCreate() {
 
 function doOperate() {
     console.log('do operate....');
-    socket.emit('player operate', arguments[0], arguments[1]);
+    var data = {};
+
+    if (arguments.length === 0) {
+        data = undefined;
+    }
+    else if (typeof arguments[0] === 'number') {
+        data.pIdx = arguments[0];
+        data.cIdx = arguments[1];
+    }
+    else {
+        data.cards = arguments[0];
+        data.value = arguments[1];
+    }
+    socket.emit('player operate', data);
 }
 
 </script>
