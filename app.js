@@ -6,14 +6,13 @@
 var express = require('express'), 
     http = require('http'),
     ejs_locals = require('ejs-locals'),
-    connect = require('express/node_modules/connect'),
-    MemoryStore = connect.session.MemoryStore,
+    MongoStore = require('connect-mongo')(express),
     config = require('./config').config,
     routes = require('./routes'),
     listener = require('./listener');
 
 var app = express(), server,
-    sessionStore = new MemoryStore({ reapInterval: 6000 * 10 }),
+    sessionStore = new MongoStore({ url: config.db }),
     maxAge = 1000 * 60 * 60 * 24 * 365,
     staticDir = __dirname + '/public';
 
