@@ -1,12 +1,12 @@
 
-var socket_io = require('socket.io')
-  , cookie = require('express/node_modules/cookie')
-  , connect = require('express/node_modules/connect')
-  , parseCookies = connect.utils.parseSignedCookies
-  , config = require('./config').config
-  , Player = require('./controllers/player')
-  , Room = require('./controllers/room')
-  , User = require('./models').User;
+var socket_io = require('socket.io'),
+    cookie = require('express/node_modules/cookie'),
+    connect = require('express/node_modules/connect'),
+    parseCookies = connect.utils.parseSignedCookies,
+    config = require('./config').config,
+    Player = require('./controllers/player'),
+    Room = require('./controllers/room'),
+    User = require('./models').User;
 
 exports.register = function(httpServer, sessionStore) {
     var io = socket_io.listen(httpServer);
