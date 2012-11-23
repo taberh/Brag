@@ -3,6 +3,8 @@
  */
 
 var path = require('path');
+var local_db_uri = 'mongodb://127.0.0.1/brag_game_dev';
+var remote_db_uri = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL;
 
 exports.config = {
     // application config
@@ -17,7 +19,7 @@ exports.config = {
         '<meta name="author" content="taber.huang" />'
     ],
 
-    db: 'mongodb://127.0.0.1/brag_game_dev',
+    db: remote_db_uri || local_db_uri,
     session_secret: 'tongzi_brag_game',
     auth_cookie_name: 'tongzi_brag_game',
     port: 3000,
