@@ -263,21 +263,23 @@ Room.prototype = {
     
     interrupt: function(aClient) {
         var clients = this.clients,
-            client, i, index;
+            client, i, index, message, user;
 
+        message = aClient.handshake.user['nickname'] + '玩家强行退出，游戏中断';
         index = clients.indexOf(aClient);
 
         for (i = 0; i < clients.length; i++) {
             client = clients[i];
 
             if (client && client !== aClient) {
-                client.handshake.user['status'] = PLAYER_STATUS_NONE;
-                delete client.handshake.user['rid'];
-                delete client.handshake.user['vid'];
+                user = client.handshake.user;
+                user['status'] = PLAYER_STATUS_NONE;
+                delete user['rid'];
+                delete user['vid'];
 
                 client.emit('room interrupt', {
                     'status': 0,
-                    'message': aClient.handshake.user['nickname'] + '玩家强行退出，游戏中断',
+                    'message': message,
                     'data': {
                         'pIdx': index
                     }
