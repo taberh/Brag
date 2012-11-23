@@ -137,24 +137,28 @@ exports.operate = function() {
 
                 if (i === brag.winner) {
                     aUser['score'] += (brag.chip*(brag.seating-1));
+                    aUser['count_win'] += 1;
                 }
                 else {
                     aUser['score'] -= brag.chip;
+                    aUser['count_lose'] -= 1;
                 }
 
-                (function(score, openid) {
-                    User.findOne({'openid': openid}, function(err, user) {
+                (function(aUser) {
+                    User.findOne({'openid': aUser.openid}, function(err, user) {
                         if (err) 
                             return console.log(err.message)
 
                         if (user) {
-                            user.score = score;
+                            user.score = aUser.score;
+                            user.count_win = aUser.count_win;
+                            user.count_lose = aUser.count_lose;
                             user.save(function(err) {
                                 console.log('save user info ', !err ? 'success' : 'error');    
                             });
                         }
                     });
-                }(aUser['score'], aUser['openid']));
+                }(aUser));
             }
 
             client.emit('player operate', {
