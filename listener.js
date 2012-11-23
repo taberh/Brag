@@ -4,8 +4,8 @@ var socket_io = require('socket.io'),
     connect = require('express/node_modules/connect'),
     parseCookies = connect.utils.parseSignedCookies,
     config = require('./config').config,
-    Player = require('./controllers/player'),
-    Room = require('./controllers/room'),
+    Player = require('./lib/player'),
+    Room = require('./lib/room'),
     User = require('./models').User;
 
 exports.register = function(httpServer, sessionStore) {
