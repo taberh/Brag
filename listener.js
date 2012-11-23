@@ -11,10 +11,16 @@ var socket_io = require('socket.io')
 exports.register = function(httpServer, sessionStore) {
     var io = socket_io.listen(httpServer);
 
+    io.configure(function() {
+        io.set('transports', ['xhr-polling', 'websocket']);
+        io.set('polling duration', 10);
+    });
+
     io.configure('production', function() {
         io.enable('browser client etag');
         io.enable('browser client gzip');
         io.enable('browser client minification');
+
     });
 
     io.set('authorization', function(data, callback) {
