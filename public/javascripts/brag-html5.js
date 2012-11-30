@@ -24,6 +24,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
+
 (function () {
     var d = document;
     var c = {
@@ -32,33 +33,17 @@
         showFPS:true,
         frameRate:60,
         tag:'gameCanvas', //the dom element to run cocos2d on
-        //engineDir:'/javascripts/cocos2d/',
-        SingleEngineFile:'/javascripts/Cocos2d-html5-v2.0.min.js',
+        SingleEngineFile:'/javascripts/cocos2d-html5-v2.0.min.js',
         appFiles:[
             '/javascripts/brag/resource.js',
-            '/javascripts/brag/myApp.js'//add your own files in order here
+            '/javascripts/brag/myApp.js'
         ]
     };
     window.addEventListener('DOMContentLoaded', function () {
-        //first load engine file if specified
         var s = d.createElement('script');
-        /*********Delete this section if you have packed all files into one*******/
-        if (c.SingleEngineFile && !c.engineDir) {
-            s.src = c.SingleEngineFile;
-        }
-        else if (c.engineDir && !c.SingleEngineFile) {
-            s.src = c.engineDir + 'platform/jsloader.js';
-        }
-        else {
-            alert('You must specify either the single engine file OR the engine directory in "cocos2d.js"');
-        }
-        /*********Delete this section if you have packed all files into one*******/
-
-            //s.src = 'Packed_Release_File.js'; //IMPORTANT: Un-comment this line if you have packed all files into one
-
+        s.src = c.SingleEngineFile;
         d.body.appendChild(s);
         s.c = c;
         s.id = 'cocos2d-html5';
-        //else if single file specified, load singlefile
     });
 })();
