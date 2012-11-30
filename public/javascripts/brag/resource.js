@@ -1,20 +1,11 @@
-var s_HelloWorld = "resources/HelloWorld.png";
-var s_CloseNormal = "resources/CloseNormal.png";
-var s_CloseSelected = "resources/CloseSelected.png";
+
+var dirImg = 'resources/image/';
+var dirMusic = 'resources/music/';
+
+//image 
+var s_bg = dirImg + 'bg.jpg';
+var s_avatar_bg = dirImg + 'avatar-bg.png';
 
 var g_ressources = [
-    //image
-    {type:"image", src:s_HelloWorld},
-    {type:"image", src:s_CloseNormal},
-    {type:"image", src:s_CloseSelected}
-
-    //plist
-
-    //fnt
-
-    //tmx
-
-    //bgm
-
-    //effect
+    {type:'image', src:s_bg}
 ];
