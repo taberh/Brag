@@ -1,2 +1,5 @@
-node_modules
+/node_modules
 .DS_Store
+/public/javascripts/box2d/
+/public/javascripts/cocos2d/
+/public/javascripts/CocosDenshion/
