@@ -49,7 +49,7 @@
 
         s.src = /brag/.test(location.host) ?
                 s.SingleEngineFile :
-                c.engineDir + 'platform/jsloader.js';
+                (c.engineDir + 'platform/jsloader.js');
                 
         d.body.appendChild(s);
         s.c = c;
