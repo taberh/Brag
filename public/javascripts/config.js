@@ -48,8 +48,8 @@
         var s = d.createElement('script');
 
         s.src = /brag/.test(location.host) ?
-                s.SingleEngineFile :
-                (c.engineDir + 'platform/jsloader.js');
+                (c.engineDir + 'platform/jsloader.js') :
+                s.SingleEngineFile;
                 
         d.body.appendChild(s);
         s.c = c;
