@@ -1,10 +1,12 @@
 
 var MainLayer = cc.Layer.extend({
 
-    _nicknameLabelTag: 100,
-    _scoreLabelTag: 101,
-    _statusLabelTag: 102,
-    _avatarSpriteTag: 103,
+    _nicknameLabel: null,
+    _scoreLabel: null,
+    _statusLabel: null,
+    _avatarSprite: null,
+    _coverLayer: null,
+    _toolbarSprite: null,
 
     init: function() {
         if (!this._super()) {
@@ -17,24 +19,33 @@ var MainLayer = cc.Layer.extend({
         var backgroundSprite, avatarBackgroundSprite;
         var nicknameLabel, scoreLabel, statusLabel;
         var nicknamePrefixLabel, scorePrefixLabel, statusPrefixLabel;
-        var menu, noticeButton, settingsButton, startButton, enterButton, changeButton;
+        var menu, noticeButton, settingsButton, startButton, enterButton, changeButton, 
+            weiboButton, tencentButton, guestButton;
 
         backgroundSprite = cc.Sprite.create(s_bg);
         backgroundSprite.setAnchorPoint(new cc.Point(0, 0));
         avatarBackgroundSprite = cc.Sprite.create(s_avatar_bg);
         avatarBackgroundSprite.setPosition(new cc.Point(160, 200));
 
-        nicknameLabel = cc.LabelTTF.create('taberh', 'Times New Roman', 14, cc.size(100, 30), cc.TEXT_ALIGNMENT_LEFT);
-        nicknameLabel.setPosition(new cc.Point(285, 220));
-        nicknameLabel.setTag(this._nicknameLabelTag);
-        scoreLabel = cc.LabelTTF.create('1000', 'Times New Roman', 14, cc.size(100, 30), cc.TEXT_ALIGNMENT_LEFT);
-        scoreLabel.setPosition(new cc.Point(285, 190));
-        scoreLabel.setTag(this._scoreLabelTag);
-        scoreLabel.setColor(new cc.Color3B(55, 200, 100));
-        statusLabel = cc.LabelTTF.create('游客登录', 'Times New Roman', 14, cc.size(100, 30), cc.TEXT_ALIGNMENT_LEFT);
-        statusLabel.setPosition(new cc.Point(285, 160));
-        statusLabel.setTag(this._statusLabelTag);
-        statusLabel.setColor(new cc.Color3B(90, 200, 10));
+        this._nicknameLabel = cc.LabelTTF.create('taberh', 'Times New Roman', 14, cc.size(100, 30), cc.TEXT_ALIGNMENT_LEFT);
+        this._nicknameLabel.setPosition(new cc.Point(285, 220));
+        this._scoreLabel = cc.LabelTTF.create('1000', 'Times New Roman', 14, cc.size(100, 30), cc.TEXT_ALIGNMENT_LEFT);
+        this._scoreLabel.setPosition(new cc.Point(285, 190));
+        this._scoreLabel.setColor(new cc.Color3B(55, 200, 100));
+        this._statusLabel = cc.LabelTTF.create('游客登录', 'Times New Roman', 14, cc.size(100, 30), cc.TEXT_ALIGNMENT_LEFT);
+        this._statusLabel.setPosition(new cc.Point(285, 160));
+        this._statusLabel.setColor(new cc.Color3B(90, 200, 10));
+
+        tencentButton = cc.MenuItemFont.create('QQ登录', this, this.onLoginWithTencent);
+        weiboButton = cc.MenuItemFont.create('微博登录', this, this.onLoginWithWeibo);
+        guestButton = cc.MenuItemFont.create('游客登录', this, this.onLoginWithGuest);
+
+        this._toolbarMenu = cc.Menu.create(tencentButton, weiboButton, guestButton);
+        this._toolbarMenu.setContentSize(cc.size(winSize.width, 36));
+        this._toolbarMenu.setPosition(new cc.Point(winSize.width/2, -18));
+        this._toolbarMenu.alignItemsHorizontallyWithPadding(15);
+
+        this._coverLayer = cc.LayerColor.create(new cc.Color4B(0, 0, 0, 0), winSize.width, winSize.height);
 
         nicknamePrefixLabel = cc.LabelTTF.create('昵称：', 'Times New Roman', 14, cc.size(50, 30), cc.TEXT_ALIGNMENT_LEFT);
         nicknamePrefixLabel.setPosition(new cc.Point(220, 220));
@@ -60,33 +71,63 @@ var MainLayer = cc.Layer.extend({
 
         this.addChild(backgroundSprite);
         this.addChild(avatarBackgroundSprite);
-        this.addChild(nicknameLabel);
-        this.addChild(scoreLabel);
-        this.addChild(statusLabel);
         this.addChild(nicknamePrefixLabel);
         this.addChild(scorePrefixLabel);
         this.addChild(statusPrefixLabel);
         this.addChild(menu);
+        this.addChild(this._nicknameLabel);
+        this.addChild(this._scoreLabel);
+        this.addChild(this._statusLabel);
+        this.addChild(this._coverLayer);
+        this.addChild(this._toolbarMenu);
+
+        this.setTouchEnabled(true);
         
         return true;
+    },
+    
+    onTouchesEnded: function(touches, event) {
+        var touch = touches[0];
+
+        if (touch && this._coverLayer.isVisible() && touch.getLocation().y >= 36) {
+            this._coverLayer.runAction(cc.Sequence.create(cc.FadeTo.create(0.5, 0)));
+            this._toolbarMenu.runAction(cc.Sequence.create(cc.MoveTo.create(0.5, new cc.Point(240, -18))));
+        }
     },
 
     onNotice: function(e) {
     },
 
     onSettings: function(e) {
+        var director = cc.Director.getInstance();
+        var settingsScene = SettingsLayer.scene();
+        director.pushScene(cc.TransitionMoveInB.create(0.3, settingsScene));
     },
 
     onStartGame: function(e) {
         var director = cc.Director.getInstance();
-        var bragSence = BragLayer.scene();
-        director.replaceScene(cc.TransitionFade.create(1.2, bragSence));
+        var bragScene = BragLayer.scene();
+        director.replaceScene(cc.TransitionFade.create(1, bragScene));
     },
 
     onEnterLobby: function(e) {
+        var director = cc.Director.getInstance();
+        var lobbyScene = LobbyLayer.scene();
+        director.replaceScene(cc.TransitionFade.create(1, lobbyScene));
     },
 
     onChangeAccount: function(e) {
+        this._coverLayer.runAction(cc.Sequence.create(cc.FadeTo.create(0.5, 100)));
+        this._toolbarMenu.runAction(cc.Sequence.create(cc.MoveTo.create(0.5, new cc.Point(240, 10))));
+    },
+
+    onLoginWithTencent: function(e) {
+    },
+
+    onLoginWithWeibo: function(e) {
+    },
+
+    onLoginWithGuest: function(e) {
     }
 });
 

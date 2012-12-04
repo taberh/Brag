@@ -33,7 +33,7 @@
         showFPS:false,
         frameRate:60,
         tag:'gameCanvas', //the dom element to run cocos2d on
-        //SingleEngineFile:'javascripts/Cocos2d-html5-v2.0.min.js',
+        SingleEngineFile:'javascripts/Cocos2d-html5-v2.0.min.js',
         engineDir: 'javascripts/cocos2d/',
         appFiles:[
             'javascripts/brag/Resource.js',
@@ -46,8 +46,11 @@
     };
     window.addEventListener('DOMContentLoaded', function () {
         var s = d.createElement('script');
-        //s.src = c.SingleEngineFile;
-        s.src = c.engineDir + 'platform/jsloader.js';
+
+        s.src = /brag/.test(location.host) ?
+                s.SingleEngineFile :
+                c.engineDir + 'platform/jsloader.js';
+                
         d.body.appendChild(s);
         s.c = c;
         s.id = 'cocos2d-html5';
