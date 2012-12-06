@@ -6,12 +6,29 @@ var BragLayer = cc.Layer.extend({
             return false;
         }
 
-        var backgroundSprite = cc.Sprite.create(s_bg);
-        backgroundSprite.setAnchorPoint(new cc.Point(0, 0));
+        var backgroundSprite;
+        var menu, backButton, readyButton, believeButton, throwButton;
+
+        backgroundSprite = cc.Sprite.create(s_bg);
+        backgroundSprite.setAnchorPoint(cc.PointZero());
+        
+        backButton = cc.MenuItemFont.create('返回', this, this.onBack);
+        backButton.setPosition(new cc.Point(30, 300));
+        
+        menu = cc.Menu.create(backButton);
+        menu.setAnchorPoint(cc.PointZero());
+        menu.setPosition(cc.PointZero());
 
         this.addChild(backgroundSprite);
+        this.addChild(menu);
 
         return true;
+    },
+
+    onBack: function(e) {
+        var director = cc.Director.getInstance();
+        var lobbyScene = LobbyLayer.scene();
+        director.replaceScene(cc.TransitionFade.create(1.2, lobbyScene));
     }
 });
 

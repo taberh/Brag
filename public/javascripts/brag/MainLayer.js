@@ -101,7 +101,7 @@ var MainLayer = cc.Layer.extend({
     onSettings: function(e) {
         var director = cc.Director.getInstance();
         var settingsScene = SettingsLayer.scene();
-        director.pushScene(cc.TransitionMoveInB.create(0.3, settingsScene));
+        director.pushScene(settingsScene);
     },
 
     onStartGame: function(e) {

@@ -6,12 +6,30 @@ var SettingsLayer = cc.Layer.extend({
             return false;
         }
 
-        var backgroundSprite = cc.Sprite.create(s_bg);
-        backgroundSprite.setAnchorPoint(new cc.Point(0, 0));
+        cc._fontSize = 14;
+
+        var winSize = cc.Director.getInstance().getWinSize();
+        var bckgroundSprite;
+        var menu, backButton;
+        
+        backgroundSprite = cc.Sprite.create(s_bg);
+        backgroundSprite.setAnchorPoint(cc.PointZero());
+
+        backButton = cc.MenuItemFont.create('返回', this, this.onBack);
+        backButton.setPosition(new cc.Point(30, 300));
+
+        menu = cc.Menu.create(backButton);
+        menu.setAnchorPoint(cc.PointZero());
+        menu.setPosition(cc.PointZero());
 
         this.addChild(backgroundSprite);
+        this.addChild(menu);
 
         return true;
+    },
+
+    onBack: function() {
+        cc.Director.getInstance().popScene();
     }
 });
 

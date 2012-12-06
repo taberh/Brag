@@ -37,6 +37,7 @@
         //engineDir: 'javascripts/cocos2d/',
         appFiles:[
             'javascripts/brag/Resource.js',
+            'javascripts/brag/LoadingLayer.js',
             'javascripts/brag/MainLayer.js',
             'javascripts/brag/HelpLayer.js',
             'javascripts/brag/SettingsLayer.js',
