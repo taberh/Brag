@@ -36,7 +36,11 @@
         SingleEngineFile:'javascripts/Cocos2d-html5-v2.0.min.js',
         //engineDir: 'javascripts/cocos2d/',
         appFiles:[
+            'socket.io/socket.io.js',
+            'javascripts/cookie.min.js',
+            'javascripts/utils.js',
             'javascripts/brag/Resource.js',
+            'javascripts/brag/Brag.js',
             'javascripts/brag/LoadingLayer.js',
             'javascripts/brag/LoginLayer.js',
             'javascripts/brag/MainLayer.js',

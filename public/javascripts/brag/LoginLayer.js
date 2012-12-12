@@ -49,10 +49,15 @@ var LoginLayer = cc.LayerColor.extend({
         }
 
         function callback(userinfo) {
+            if (!userinfo || typeof userinfo === 'string') {
+                return error(userinfo || '授权失败，请重试！');
+            }
+
             signin();
 
             function signin() {
                 _this._statusLabel.setString('正在登录...');
+
                 ajax({
                     url: '/api/signin',
                     method: 'POST',
@@ -66,12 +71,16 @@ var LoginLayer = cc.LayerColor.extend({
                         else if (result.status === 112) {
                             signup();
                         }
+                        else {
+                            error('登录失败');
+                        }
                     }
                 });
             }
 
             function signup() {
                 _this._statusLabel.setString('正在注册...');
+
                 ajax({
                     url: '/api/signup',
                     method: 'POST',
@@ -79,6 +88,9 @@ var LoginLayer = cc.LayerColor.extend({
                     success: function(result) {
                         if (result.status === 0) {
                             signin();
+                        }
+                        else {
+                            error(result.error && result.error.message || '注册失败');
                         }
                     }
                 });
@@ -89,58 +101,86 @@ var LoginLayer = cc.LayerColor.extend({
                 window.User = user;
                 director.replaceScene(MainLayer.scene());
             }
+
+            function error(message) {
+                _this._coverLayer.runAction(cc.Sequence.create(cc.FadeTo.create(0.2, 0)));
+                _this._statusLabel.setString('');
+
+                alert(message);
+            }
         }
     },
 
     _loginWithQ: function(callback) {
         QC.Login({}, function(a,b) {
-            QC.Login.getMe(function(openid, token) {
-                callback({
-                    nickname: a.nickname,
-                    avatar_url: a.figureurl_2,
-                    sex: a.gender === '男' ? 1 : 2,
-                    openid: 'QQ_' + openid,
-                    account_type: 2
-                });
-            });
+            var o = QC.Login._getTokenKeys();
+            g(a, o.openid);
+        }, function() {
+            callback('授权失败');
         });
 
-        if (QC.Login.check()) {
-            QC.Login.getMe(function(openid, token) {
-                callback({
-                    openid: 'QQ_' + openid
-                });
+        var oauthData = QC.Login._getTokenKeys();
+
+        if (QC.Login.check() && oauthData.accessToken && oauthData.openid) {
+            QC.api('/user/get_user_info', {
+                'access_token': oauthData.accessToken,
+                'openid': oauthData.openid,
+                'oauth_consumer_key': QC.getAppId()
+            }, 'json', 'get').success(function(result) {
+                if (result.ret === 0) {
+                    g(result.data, oauthData.openid);
+                }
+                else {
+                    callback('获取个人信息失败');
+                }
+            }).error(function() {
+                callback('获取个人信息失败');
             });
         }
         else {
             QC.Login.showPopup();
         }
+
+        function g(data, openid) {
+            callback({
+                nickname: data.nickname,
+                avatar_url: data.figureurl_2,
+                sex: data.gender === '男' ? 1 : 2,
+                openid: 'QQ_' + openid,
+                account_type: 2                        
+            });
+        }
     },
 
     _loginWithS: function(callback) {
         if (WB2.checkLogin()) {
-            callback({
-                openid: 'WB_' + WB2.oauthData.uid
-            });
+            g();
         } else {
             WB2.login(function() {
-                WB2.anyWhere(function(W) {
-                    W.parseCMD('/users/show.json', function(result, status) {
-                        if (status) {
-                            callback({
-                                nickname: result.name,
-                                avatar_url: result.avatar_large,
-                                sex: result.gender === 'm' ? 1 : 2,
-                                openid: 'WB_' + WB2.oauthData.uid,
-                                account_type: 3
-                            });
-                        }
-                    }, { 
-                        uid: WB2.oauthData.uid
-                    }, {
-                        method: 'get'
-                    })
-                });
+                g();
+            });
+        }
+        
+        function g() {
+            WB2.anyWhere(function(W) {
+                W.parseCMD('/users/show.json', function(result, status) {
+                    if (status) {
+                        callback({
+                            nickname: result.name,
+                            avatar_url: result.avatar_large,
+                            sex: result.gender === 'm' ? 1 : 2,
+                            openid: 'WB_' + WB2.oauthData.uid,
+                            account_type: 3
+                        });
+                    }
+                    else {
+                        callback('获取个人信息失败');
+                    }
+                }, { 
+                    uid: WB2.oauthData.uid
+                }, {
+                    method: 'get'
+                })
             });
         }
     }

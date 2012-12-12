@@ -60,7 +60,7 @@ function login(openid) {
 
 function login_success(result) {
     user = result.data;
-    socket = io.connect('/game')
+    socket = io.connect('/brag')
     console.log('start connecting....');
     socket.on('room enter', enter);
     socket.on('room leave', leave);

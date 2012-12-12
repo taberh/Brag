@@ -14,6 +14,7 @@ var MainLayer = cc.Layer.extend({
 
         cc._fontSize = 14;
 
+        var _this = this;
         var winSize = cc.Director.getInstance().getWinSize();
         var backgroundSprite, avatarBackgroundSprite;
         var nicknameLabel, scoreLabel, statusLabel;
@@ -40,9 +41,6 @@ var MainLayer = cc.Layer.extend({
         this._statusLabel = cc.LabelTTF.create('', 'Times New Roman', 14, cc.size(100, 30), cc.TEXT_ALIGNMENT_LEFT);
         this._statusLabel.setPosition(new cc.Point(285, 160));
         this._statusLabel.setColor(new cc.Color3B(90, 200, 10));
-        this._avatarSprite = cc.Sprite.create(User.avatar_url);
-        this._avatarSprite.setPosition(new cc.Point(160, 200));
-        this._avatarSprite.setContentSize(new cc.Size(50, 50));
 
         switch(User.account_type) {
             case 1: 
@@ -55,6 +53,23 @@ var MainLayer = cc.Layer.extend({
                 this._statusLabel.setString('微博登录');
                 break;
         }
+
+        var avatarImage = new Image();
+        avatarImage.addEventListener('load', function() {
+            cc.TextureCache.getInstance().cacheImage(User.avatar_url, avatarImage);
+            _this._avatarSprite = cc.Sprite.create(User.avatar_url);
+            _this._avatarSprite.setPosition(new cc.Point(160, 200));
+
+            var sX = 50/avatarImage.width,
+                sY = 50/avatarImage.height;
+            _this._avatarSprite.setScale(sX, sY);
+            
+            _this.addChild(_this._avatarSprite);
+        });
+        avatarImage.addEventListener('error', function() {
+            cc.log('load failure:' + User.avatar_url);
+        });
+        avatarImage.src = User.avatar_url;
 
         noticeButton = cc.MenuItemFont.create('公告', this, this.onNotice);
         noticeButton.setPosition(new cc.Point(30, 300));
@@ -76,12 +91,11 @@ var MainLayer = cc.Layer.extend({
         this.addChild(this._nicknameLabel);
         this.addChild(this._scoreLabel);
         this.addChild(this._statusLabel);
-        this.addChild(this._avatarSprite);
 
         return true;
     },
     
-   onNotice: function(e) {
+    onNotice: function(e) {
     },
 
     onSettings: function(e) {
@@ -93,7 +107,7 @@ var MainLayer = cc.Layer.extend({
     onStartGame: function(e) {
         var director = cc.Director.getInstance();
         var bragScene = BragLayer.scene();
-        director.replaceScene(cc.TransitionFade.create(1, bragScene));
+        director.replaceScene(bragScene);
     }
 
 });

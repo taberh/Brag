@@ -59,7 +59,7 @@ exports.register = function(httpServer, sessionStore) {
         callback('SessionID not found.', false);
     });
 
-    io.of('/game').on('connection', function(client) {
+    io.of('/brag').on('connection', function(client) {
         if (client.handshake.user) {
             client.handshake.user['status'] = PLAYER_STATUS_NONE;
         }
