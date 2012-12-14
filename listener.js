@@ -12,8 +12,8 @@ exports.register = function(httpServer, sessionStore) {
     var io = socket_io.listen(httpServer);
 
     io.configure(function() {
-        io.set('transports', ['xhr-polling', 'websocket']);
-        io.set('polling duration', 10);
+        io.set('transports', ['websocket', 'xhr-polling']);
+        //io.set('polling duration', 10);
     });
 
     io.configure('production', function() {

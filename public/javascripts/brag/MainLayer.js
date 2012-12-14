@@ -106,8 +106,8 @@ var MainLayer = cc.Layer.extend({
 
     onStartGame: function(e) {
         var director = cc.Director.getInstance();
-        var bragScene = BragLayer.scene();
-        director.replaceScene(bragScene);
+        var roomScene = RoomLayer.scene();
+        director.replaceScene(roomScene);
     }
 
 });

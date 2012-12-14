@@ -10,15 +10,15 @@ var LoginLayer = cc.LayerColor.extend({
         }
 
         var winSize = cc.Director.getInstance().getWinSize();
-        var menu, qLogin, sLogin;
+        var menu;
 
-        sLogin = cc.MenuItemImage.create(n_weibo_login_logo, null, this, 'doLogin');
-        sLogin.setPosition(new cc.Point(203, 130));
-        qLogin = cc.MenuItemImage.create(n_qzone_login_logo, null, this, 'doLogin');
-        qLogin.setPosition(new cc.Point(200, 200));
-        qLogin.setTag(100);
+        this._sLoginButton = cc.MenuItemImage.create(n_weibo_login_logo, null, this, 'doLogin');
+        this._sLoginButton.setPosition(new cc.Point(203, 130));
+        this._qLoginButton = cc.MenuItemImage.create(n_qzone_login_logo, null, this, 'doLogin');
+        this._qLoginButton.setPosition(new cc.Point(200, 200));
+        this._qLoginButton.setTag(100);
 
-        menu = cc.Menu.create(sLogin, qLogin);
+        menu = cc.Menu.create(this._sLoginButton, this._qLoginButton);
         menu.setAnchorPoint(cc.PointZero());
         menu.setPosition(cc.PointZero());
 
@@ -37,6 +37,10 @@ var LoginLayer = cc.LayerColor.extend({
         var tag = target.getTag();
         var _this = this;
 
+        // disabled button
+        this._sLoginButton.setEnabled(false);
+        this._qLoginButton.setEnabled(false);
+
         // show cover
         this._coverLayer.runAction(cc.Sequence.create(cc.FadeTo.create(0.3, 150)));
         this._statusLabel.setString('正在授权...');
@@ -50,6 +54,8 @@ var LoginLayer = cc.LayerColor.extend({
 
         function callback(userinfo) {
             if (!userinfo || typeof userinfo === 'string') {
+                _this._sLoginButton.setEnabled(true);
+                _this._qLoginButton.setEnabled(true);
                 return error(userinfo || '授权失败，请重试！');
             }
 
@@ -116,26 +122,11 @@ var LoginLayer = cc.LayerColor.extend({
             var o = QC.Login._getTokenKeys();
             g(a, o.openid);
         }, function() {
-            callback('授权失败');
+            QC.Login.showPopup();
         });
 
-        var oauthData = QC.Login._getTokenKeys();
-
-        if (QC.Login.check() && oauthData.accessToken && oauthData.openid) {
-            QC.api('/user/get_user_info', {
-                'access_token': oauthData.accessToken,
-                'openid': oauthData.openid,
-                'oauth_consumer_key': QC.getAppId()
-            }, 'json', 'get').success(function(result) {
-                if (result.ret === 0) {
-                    g(result.data, oauthData.openid);
-                }
-                else {
-                    callback('获取个人信息失败');
-                }
-            }).error(function() {
-                callback('获取个人信息失败');
-            });
+        if (QC.Login.check()) {
+            QC.Login.signOut();
         }
         else {
             QC.Login.showPopup();
@@ -156,7 +147,7 @@ var LoginLayer = cc.LayerColor.extend({
         if (WB2.checkLogin()) {
             g();
         } else {
-            WB2.login(function() {
+            WB2.Login(function() {
                 g();
             });
         }
@@ -174,7 +165,7 @@ var LoginLayer = cc.LayerColor.extend({
                         });
                     }
                     else {
-                        callback('获取个人信息失败');
+                        callback(result.error || '获取个人信息失败');
                     }
                 }, { 
                     uid: WB2.oauthData.uid
