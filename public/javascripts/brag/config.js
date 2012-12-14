@@ -40,12 +40,13 @@
             'javascripts/cookie.min.js',
             'javascripts/utils.js',
             'javascripts/brag/Resource.js',
+            'javascripts/brag/Brag.js',
             'javascripts/brag/LoadingLayer.js',
             'javascripts/brag/LoginLayer.js',
             'javascripts/brag/MainLayer.js',
+            'javascripts/brag/RoomLayer.js',
             'javascripts/brag/HelpLayer.js',
             'javascripts/brag/SettingsLayer.js',
-            'javascripts/brag/RoomLayer.js',
             'javascripts/brag/LobbyLayer.js'
         ]
     };

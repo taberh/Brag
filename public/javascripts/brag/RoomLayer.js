@@ -1,10 +1,4 @@
 
-var PLAYER_STATUS_NONE = 0,
-    PLAYER_STATUS_WAIT = 1,
-    PLAYER_STATUS_READY = 2,
-    PLAYER_STATUS_PLAYING = 3,
-    PLAYER_STATUS_TRUSTEESHIP = 4;
-
 var RoomLayer = cc.Layer.extend({
 
     _leftAvatarSprite: null,
@@ -23,12 +17,6 @@ var RoomLayer = cc.Layer.extend({
     _clockSprite: null,
     _loadingLayer: null,
 
-    _socket: null,
-    _room: {
-        players: [],
-        index: -1
-    },
-    
     init: function() {
         if (!this._super()) {
             return false;
@@ -95,7 +83,6 @@ var RoomLayer = cc.Layer.extend({
 
         this._loadingLayer = LoadingLayer.create();
         this._loadingLayer.cancelButton.setCallback(this, this.onCancel);
-        this._loadingLayer.statusLabel.setString('正在连接服务器...');
 
         this.addChild(backgroundSprite);
         this.addChild(avatarSpriteLeftBg);
@@ -116,31 +103,49 @@ var RoomLayer = cc.Layer.extend({
         //this.addChild(this._clockSprite);
         this.addChild(this._loadingLayer);
 
-        this._socket = io.connect('/brag');
-        this._socket.on('connect', wrapFunc(this.connect, this));
-        this._socket.on('error', wrapFunc(this.error, this));
-        this._socket.on('disconnect', wrapFunc(this.disconnect, this));
-        this._socket.on('room enter', wrapFunc(this.enter, this));
-        this._socket.on('room leave', wrapFunc(this.leave, this));
-        this._socket.on('room interrupt', wrapFunc(this.interrupt, this));
-        this._socket.on('player ready', wrapFunc(this.ready, this));
-        this._socket.on('palyer operate', wrapFunc(this.operate, this));
-
-        function wrapFunc(func, target) {
-            return function() {
-                func.apply(target, arguments);
-            };
-        }
-
         console.log('init .......');
+
+        this._loadingLayer.statusLabel.setString('正在连接服务器...');
+        this.brag = new Brag(0, this);
 
         return true;
     },
 
+    onChangeRoom: function(e) {
+        var _this = this;
+        this.doLeave(function(result) {
+            if (result.status === 0) {
+                _this.doEnter();
+            }
+        });
+    },
+
+    onBack: function(e) {
+        if (this.brag && this.brag.playing) {
+            alert('游戏中，不能退出');
+            return;
+        }
+
+        this.back();
+    },
+
+    onCancel: function(e) {
+        this.back();
+    },
+
+    back: function() {
+        var director = cc.Director.getInstance();
+        var mainScene = MainLayer.scene();
+        director.replaceScene(mainScene);
+        this.brag.doLeave();
+        io.sockets = {};
+    },
+
     updateUI: function() {
         var _this = this,
-            players = _this._room.players,
-            index = _this._room.index;
+            brag = _this.brag,
+            players = brag.players,
+            index = brag.index;
 
         if (index >= 0) {
             var lIdx = (index + 2) % 3;
@@ -185,152 +190,6 @@ var RoomLayer = cc.Layer.extend({
                 }
             }
         }
-    },
-
-    onBack: function(e) {
-        if (this._Brag && this._Brag.playing) {
-            alert('游戏中，不能退出');
-            return;
-        }
-
-        this.onCancel();
-    },
-
-    onChangeRoom: function(e) {
-        var _this = this;
-        this.doLeave(function(result) {
-            if (result.status === 0) {
-                _this.doEnter();
-            }
-        });
-    },
-
-    onCancel: function(e) {
-        var director = cc.Director.getInstance();
-        var mainScene = MainLayer.scene();
-        director.replaceScene(mainScene);
-        this.doLeave();
-        this._socket.disconnect();
-        io.sockets = {};
-    },
-
-    connect: function() {
-        console.log('connect...');
-        this._loadingLayer.statusLabel.setString('正在进入房间...');
-        this.doEnter();
-    },
-
-    disconnect: function() {
-        console.log('disconnect...');
-    },
-
-    error: function() {
-        console.log('error...');
-    },
-
-    enter: function(data) {
-        if (data.status === 0) {
-            this._room.players[data.data['pIdx']] = data.data.player;
-            this.updateUI();
-        }
-
-        console.log(data.message || data.error && data.error.message);
-    },
-
-    leave: function(data) {
-        if (data.status === 0) {
-            this._room.players[data.data['pIdx']] = null;
-            this.updateUI();
-        }
-
-        console.log(data.message || data.error && data.error.message);
-    },
-
-    interrupt: function(data) {
-        alert(data.message || '意外中断，sorry!!');
-        this.onCancel();
-    },
-
-    ready: function(data) {
-        if (data.status === 0) {
-            var player = this._room.players[data.data['pIdx']];
-
-            if (player) {
-                player['status'] = PLAYER_STATUS_READY;
-                this.updateUI();
-            }
-            else {
-                console.log(data.data['pIdx'] + '玩家不存在');
-            }
-        }
-
-        console.log(data.message || data.error && data.error.message);
-    },
-
-    operate: function(data) {
-    },
-
-    doEnter: function(callback) {
-        if (!this._socket) return;
-
-        var _this = this;
-
-        this._socket.emit('room enter', {
-            'vid': 1
-        }, function(result) {
-            if (result.status === 0) {
-                _this._room.players = result.data.players;
-                _this._room.index = result.data.pIdx;
-                _this.updateUI();
-            }
-            else {
-                alert(result.error && result.error.message || '进入房间失败');
-            }
-
-            _this.removeChild(_this._loadingLayer, true);
-
-            console.log('room enter: ', result);
-            callback && callback(result);
-        });
-    },
-
-    doLeave: function(callback) {
-        if (!this._socket) return;
-
-        var _this = this;
-
-        this._socket.emit('room leave', function(result) {
-            if (result.status === 0) {
-                _this._room.players = [];
-                _this._room.index = -1;
-                _this.updateUI();
-            }
-            else {
-                alert(result.error && result.error.message || '离开房间失败');
-            }
-
-            console.log('leave room: ', result);
-            callback && callback(result);
-        });
-    },
-
-    doReady: function(callback) {
-        if (!this._socket) return;
-
-        var _this = this;
-
-        this._socket.emit('player ready', function(result) {
-            if (result.status === 0) {
-                _this._room.player[index] = PLAYER_STATUS_READY;
-                _this.updateUI();
-            }
-
-            console.log('player ready: ', result);
-            callback && callback(result);
-        });
-    },
-
-    doOperate: function(callback) {
     }
 });
 
