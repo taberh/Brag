@@ -147,7 +147,7 @@ var LoginLayer = cc.LayerColor.extend({
         if (WB2.checkLogin()) {
             g();
         } else {
-            WB2.Login(function() {
+            WB2.login(function() {
                 g();
             });
         }
