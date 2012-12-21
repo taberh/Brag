@@ -51,4 +51,8 @@ var cocos2dApp = cc.Application.extend({
     }
 });
 
-var myApp = new cocos2dApp(LoginLayer.scene);
+var App = new cocos2dApp(SignScene.create);
+
+App.NORMAL_FONT = 'Times New Roman';
+
+

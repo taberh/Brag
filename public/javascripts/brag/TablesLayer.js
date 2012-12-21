@@ -1,5 +1,21 @@
 
-var RoomLayer = cc.Layer.extend({
+/**
+ *  TablesLayer.js
+ *  Brag
+ *
+ *  description: 赌桌场
+ *
+ *  Create by taber on 2012-12-20
+ *  Copyright 2012 TONGZI. All rights reserved.
+ */
+
+
+/**
+ * Tables Layer
+ * @class
+ * @extends cc.Layer
+ */
+var TablesLayer = cc.Layer.extend({
 
     _leftAvatarSprite: null,
     _leftNameLabel: null,
@@ -15,7 +31,6 @@ var RoomLayer = cc.Layer.extend({
 
     _myselfStatusLabel: null,
     _clockSprite: null,
-    _loadingLayer: null,
 
     init: function() {
         if (!this._super()) {
@@ -61,21 +76,16 @@ var RoomLayer = cc.Layer.extend({
         avatarSpriteMyselfBg.setAnchorPoint(cc.PointZero());
         avatarSpriteMyselfBg.setPosition(new cc.Point(0, 80));
 
-        nameLabelMyself = cc.LabelTTF.create(User.nickname, 'Times New Roman', 12, cc.TEXT_ALIGNMENT_CENTER);
+        nameLabelMyself = cc.LabelTTF.create(App.user.nickname, 'Times New Roman', 12, cc.TEXT_ALIGNMENT_CENTER);
         nameLabelMyself.setPosition(new cc.Point(25, 135));
 
-        var avatarSpriteMyself = cc.Sprite.create(User.avatar_url);
+        var avatarSpriteMyself = cc.Sprite.create(App.user.avatar_url);
         var contentSize = avatarSpriteMyself.getContentSize();
         var sX = 50/contentSize.width;
         var sY = 50/contentSize.height;
         avatarSpriteMyself.setAnchorPoint(cc.PointZero());
         avatarSpriteMyself.setPosition(new cc.Point(0, 80));
         avatarSpriteMyself.setScale(sX, sY);
-        
-        backButton = cc.MenuItemFont.create('返回', this, this.onBack);
-        backButton.setPosition(new cc.Point(140, 300));
-        changeRoomButton = cc.MenuItemFont.create('换桌', this, this.onChangeRoom);
-        changeRoomButton.setPosition(new cc.Point(190, 300));
         
         menu = cc.Menu.create(backButton, changeRoomButton);
         menu.setAnchorPoint(cc.PointZero());
@@ -193,19 +203,12 @@ var RoomLayer = cc.Layer.extend({
     }
 });
 
-RoomLayer.create = function() {
-    var layer = new RoomLayer();
+TablesLayer.create = function() {
+    var layer = new TablesLayer();
 
     if (layer && layer.init()) {
         return layer;
     }
 
     return null;
-};
-
-RoomLayer.scene = function() {
-    var scene = cc.Scene.create();
-    var layer = RoomLayer.create();
-    scene.addChild(layer);
-    return scene;
 };

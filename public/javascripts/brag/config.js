@@ -39,15 +39,22 @@
             'socket.io/socket.io.js',
             'javascripts/cookie.min.js',
             'javascripts/utils.js',
+
             'javascripts/brag/Resource.js',
             'javascripts/brag/Brag.js',
-            'javascripts/brag/LoadingLayer.js',
-            'javascripts/brag/LoginLayer.js',
-            'javascripts/brag/MainLayer.js',
-            'javascripts/brag/RoomLayer.js',
-            'javascripts/brag/HelpLayer.js',
-            'javascripts/brag/SettingsLayer.js',
-            'javascripts/brag/LobbyLayer.js'
+
+            'javascripts/brag/AvatarSprite.js',
+            'javascripts/brag/CoverLayer.js',
+
+            'javascripts/brag/SigninLayer.js',
+            'javascripts/brag/SignScene.js',
+
+            'javascripts/brag/MainMenu.js',
+            'javascripts/brag/AccountLayer.js',
+            'javascripts/brag/MainScene.js',
+
+            'javascripts/brag/TablesLayer.js',
+            'javascripts/brag/GameScene.js'
         ]
     };
     window.addEventListener('DOMContentLoaded', function () {

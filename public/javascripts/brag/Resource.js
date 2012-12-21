@@ -5,6 +5,8 @@ var dirMusic = 'resources/music/';
 //image 
 var s_bg = dirImg + 'bg.jpg';
 var s_avatar_bg = dirImg + 'avatar-bg.png';
+var s_ready = dirImg + 'ready.png';
+var s_card_thumb = dirImg + 'card-thumb.png';
 
 // netword image
 var n_weibo_login_logo = 'http://www.sinaimg.cn/blog/developer/wiki/240.png';
