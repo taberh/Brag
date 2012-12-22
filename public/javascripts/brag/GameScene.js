@@ -18,6 +18,9 @@
 var GameScene = cc.Scene.extend({
     
     tablesLayer: null,
+    upperPlayerLayer: null,
+    lowerPlayerLayer: null,
+    myselfLayer: null,
     coverLayer: null,
     brag: null,
 
@@ -29,10 +32,20 @@ var GameScene = cc.Scene.extend({
         this.password = password;
 
         this.tablesLayer = TablesLayer.create();
-        this.addChild(layer);
 
-        this.brag = new Brag();
-        this.brag.init();
+        this.upperPlayerLayer = UpperPlayerLayer.create();
+        this.upperPlayerLayer.index = 1;
+        this.upperPlayerLayer.setNickname(App.user.nickname);
+        this.upperPlayerLayer.setMessage('test message');
+        this.upperPlayerLayer.setReady(true);
+        this.upperPlayerLayer.setAvatar(App.user.avatar_url);
+        this.upperPlayerLayer.setCardCount(18);
+
+        this.addChild(this.tablesLayer);
+        this.addChild(this.upperPlayerLayer);
+
+        //this.brag = new Brag();
+        //this.brag.init();
     },
 
     backLobbyScene: function() {
