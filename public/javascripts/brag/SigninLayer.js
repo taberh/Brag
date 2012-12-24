@@ -62,6 +62,7 @@ var SigninLayer = cc.LayerColor.extend({
     showCover: function() {
         this.disableButton();
         this._coverLayer.show();
+        this._coverLayer.visibleCancel(true);
         this._coverLayer.setStatus('授权中，请稍等...');
     },
 
@@ -69,6 +70,7 @@ var SigninLayer = cc.LayerColor.extend({
         this.enabledButton();
         this._coverLayer.hide();
         this._coverLayer.setStatus('');
+        this._coverLayer.visibleCancel(true);
     },
 
     setStatus: function(message) {

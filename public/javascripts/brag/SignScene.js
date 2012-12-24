@@ -166,12 +166,23 @@ var SignScene = cc.Scene.extend({
     _signinSuccess: function(user) {
         console.log('Signin success: ', user);
         App.user = user;
-        this.runLobbyScene();
+
+        this.signinLayer.setStatus('正在与服务器建立连接...');
+        var brag = Brag.getInstance();
+        brag.scene = this;
     },
 
     _signinError: function(message) {
         console.warn('Signin Error: ', message);
         alert(message);
+    },
+
+    onConnect: function() {
+        this.runLobbyScene();
+    },
+
+    onConnectFailed: function() {
+        alert('建立socket连接失败');
     }
 });
 

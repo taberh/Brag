@@ -48,7 +48,7 @@ var MainScene = cc.Scene.extend({
     runGameScene: function(venueID, roomID, password) {
         if (!venueID) {
             // 未选择场馆直接进入新手场
-            this.venueID = 1;
+            venueID = 1;
         }
 
         var director = cc.Director.getInstance();

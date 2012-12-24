@@ -30,11 +30,14 @@ var CoverLayer = cc.LayerColor.extend({
         this._statusLabel.setColor(cc.c3(255,255,255));
         this._statusLabel.setPosition(cc.p(winSize.width/2, winSize.height/2));
 
-        this._cancelButton = cc.MenuItemFont.create('消息', this, this.onCancel);
-        this._cancelButton.setPosition(cc.p(200, 100));
+        cc.MenuItemFont.setFontSize(18);
+        this._cancelButton = cc.MenuItemFont.create('取消', this, this.onCancel);
+        this._cancelButton.setPosition(cc.p(winSize.width/2, winSize.height/2-30));
         this._cancelButton.setVisible(false);
 
         var menu = cc.Menu.create(this._cancelButton);
+        menu.setAnchorPoint(cc.PointZero());
+        menu.setPosition(cc.PointZero());
 
         this.addChild(this._statusLabel);
         this.addChild(menu);
@@ -46,6 +49,8 @@ var CoverLayer = cc.LayerColor.extend({
 
     hide: function() {
         this.runAction(cc.Sequence.create(cc.FadeTo.create(0.2, 0)));
+        this.setStatus('');
+        this.visibleCancel(false);
     },
 
     setStatus: function(string) {

@@ -35,20 +35,6 @@ var TablesLayer = cc.Layer.extend({
 
         return true;
     }
-    /*updateUI: function() {
-        var _this = this,
-            brag = _this.brag,
-            players = brag.players,
-            index = brag.index;
-
-        if (index >= 0) {
-            var lIdx = (index + 2) % 3;
-            var rIdx = (index + 4) % 3;
-
-            updateAvatar.call(_this, players[lIdx], 'left', new cc.Point(25, 275));
-            updateAvatar.call(_this, players[rIdx], 'right', new cc.Point(455, 275));
-        }
-    }*/
 });
 
 TablesLayer.create = function() {

@@ -18,6 +18,9 @@
 var MainMenu = cc.Menu.extend({
 
     initMenu: function() {
+        
+        cc.MenuItemFont.setFontSize(16);
+
         var noticeButton = cc.MenuItemFont.create('公告', this, this.onNotice);
         noticeButton.setPosition(cc.p(30, 300));
 
