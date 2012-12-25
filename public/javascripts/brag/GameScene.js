@@ -137,23 +137,91 @@ var GameScene = cc.Scene.extend({
     },
 
     onOperate: function(result) {
+        if (result.status === 0) {
+            
+        }
+        else {
+            // alert error message
+        }
+
+        console.log(this.brag);
     },
 
-    selectedCard: function(playerIndex, cardIndex) {
-        /*this.brag.operate({
-            pIdx: playerIndex,
-            cIdx: cardIndex
-        }, function(result) {
-        });*/
+    selectedFollowCard: function() {
+
+    },
+
+    selectedTurnonCard: function(playerIndex, cardIndex) {
+        this.brag.turnonCardIndex = cardIndex;
+        this.brag.turnonPlayerIndex = playerIndex;
+
+        if (playerIndex === this.upperPlayerLayer.index) {
+            this.lowerPlayerLayer.unselectedCard();
+        }
+        else {
+            this.upperPlayerLayer.unselectedCard();
+        }
     },
 
     turnon: function() {
-    },
+        if (this.brag.turnonPlayerIndex < 0 || 
+            this.brag.turnonCardIndex < 0 ||
+            this.brag.operator !== this.brag.index) {
+            return;
+        }
 
-    believe: function() {
+        var _this = this;
+
+        this.brag.operate({
+            'pIdx': this.brag.turnonPlayerIndex,
+            'cIdx': this.brag.turnonCardIndex
+        }, function(result) {
+            if (result.status === 0) {
+                _this.turnonButton.unselected();
+            }
+            else {
+                // alert error message
+            }
+        });
     },
 
     follow: function() {
+        if (this.brag.followCards.length === 0 || 
+            this.brag.currentValue < 1 ||
+            this.brag.operator !== this.brag.index) {
+            return;
+        }
+
+        var _this = this;
+
+        this.brag.operate({
+            'cards': this.brag.followCards,
+            'value': this.brag.currentValue
+        }, function(result) {
+            if (result.status === 0) {
+                _this.followButton.unselected();
+            }
+            else {
+                // alert error message
+            }
+        });
+    },
+
+    believe: function() {
+        if (this.brag.operator !== this.brag.index) {
+            return;
+        }
+
+        var _this = this;
+
+        this.brag.operate(function(result) {
+            if (result.status === 0) {
+                _this.believeButton.unselected();
+            }
+            else {
+                // alert error message
+            }
+        });
     },
 
     enter: function() {
@@ -177,10 +245,18 @@ var GameScene = cc.Scene.extend({
 
                 if (upPlayer) {
                     _this._setPlayerInfo(_this.upperPlayerLayer, upPlayer);
+
+                    if (upPlayer.status === PLAYER_STATUS_READY) {
+                        _this.upperPlayerLayer.setReady(true);
+                    }
                 }
 
                 if (loPlayer) {
                     _this._setPlayerInfo(_this.lowerPlayerLayer, loPlayer);
+
+                    if (loPlayer.status === PLAYER_STATUS_READY) {
+                        _this.lowerPlayerLayer.setReady(true);
+                    }
                 }
 
                 _this.menuLayer.readyButton.setVisible(true);
@@ -216,6 +292,7 @@ var GameScene = cc.Scene.extend({
         this.brag.ready(function(result) {
             if (result.status === 0) {
                 _this.myselfLayer.setReady(true);
+                _this.menuLayer.readyButton.setVisible(false);
             }
             else {
                 // alert message
@@ -255,7 +332,6 @@ var GameScene = cc.Scene.extend({
     runMainScene: function() {
         var director = cc.Director.getInstance();
         director.replaceScene(MainScene.create());
-        this.leave();
     }
 });
 

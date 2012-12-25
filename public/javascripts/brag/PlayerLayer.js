@@ -41,12 +41,6 @@ var PlayerLayer = cc.Layer.extend({
         this._cardCountLabel = cc.LabelTTF.create('', App.NORMAL_FONT, 12, cc.size(50,20), cc.TEXT_ALIGNMENT_LEFT);
         this._cardCountLabel.setVisible(false);
 
-        this._readySprite = cc.Sprite.create(s_ready);
-        this._readySprite.setVisible(false);
-
-        this._cardThumbSprite = cc.Sprite.create(s_card_thumb);
-        this._cardThumbSprite.setVisible(false);
-
         this._avatarBackgroundSprite = cc.Sprite.create(s_avatar_bg);
 
         this._cardsBox = cc.Menu.create();
@@ -55,13 +49,17 @@ var PlayerLayer = cc.Layer.extend({
         this.addChild(this._nameLabel);
         this.addChild(this._messageLabel);
         this.addChild(this._cardCountLabel);
-        this.addChild(this._readySprite);
-        this.addChild(this._cardThumbSprite);
         this.addChild(this._avatarBackgroundSprite);
         this.addChild(this._cardsBox);
     },
 
     setReady: function(isReady) {
+        if (!this._readySprite) {
+            this._readySprite = cc.Sprite.create(s_ready);
+            this._readySprite.setVisible(false);
+            this.addChild(this._readySprite);
+        }
+
         this._readySprite.setVisible(isReady);
     },
 
@@ -100,6 +98,12 @@ var PlayerLayer = cc.Layer.extend({
             return;
 
         this._cardCountLabel.setString(''+number);
+
+        if (!this._cardThumbSprite) {
+            this._cardThumbSprite = cc.Sprite.create(s_card_thumb);
+            this._cardThumbSprite.setVisible(false);
+            this.addChild(this._cardThumbSprite);
+        }
 
         if (number === '') {
             this._cardThumbSprite.setVisible(false);
@@ -144,6 +148,10 @@ var PlayerLayer = cc.Layer.extend({
         });
     },
 
+    unselectedCard: function() {
+
+    },
+
     _insertCard: function(index) {
         var cardItem = cc.MenuItemSprite.create(s_card_normal, s_card_selected, s_card_disabled, this, this._onSelectedCard);
         cardItem.setTag(this._CARD_BASE_TAG + index);
@@ -163,7 +171,7 @@ var PlayerLayer = cc.Layer.extend({
 
         target.selected();
 
-        this.scene && this.scene.selectedCard(this.index, tag);
+        this.scene && this.scene.selectedTurnonCard(this.index, tag);
     }
 });
 
@@ -180,10 +188,6 @@ var UpperPlayerLayer = PlayerLayer.extend({
 
         this._avatarBackgroundSprite.setPosition(cc.p(35,275));
 
-        this._cardThumbSprite.setPosition(cc.p(10,240));
-
-        this._readySprite.setPosition(cc.p(80,260));
-
         this._nameLabel.setPosition(cc.p(35,310));
 
         this._messageLabel.setPosition(cc.p(35, 240));
@@ -191,6 +195,16 @@ var UpperPlayerLayer = PlayerLayer.extend({
         this._cardCountLabel.setPosition(cc.p(40, 240));
 
         this._cardsBox.setPosition(cc.p(150, 220));
+    },
+
+    setReady: function(isReady) {
+        this._super(isReady);
+        this._readySprite.setPosition(cc.p(80,260));
+    },
+
+    setCardCount: function(number) {
+        this._super(number);
+        this._cardThumbSprite.setPosition(cc.p(10,240));
     }
 });
 
@@ -213,10 +227,6 @@ var LowerPlayerLayer = PlayerLayer.extend({
 
         this._avatarBackgroundSprite.setPosition(cc.p(445,275));
 
-        this._cardThumbSprite.setPosition(cc.p(420,240));
-
-        this._readySprite.setPosition(cc.p(400,260));
-
         this._nameLabel.setPosition(cc.p(445,310));
 
         this._messageLabel.setPosition(cc.p(445, 240));
@@ -224,6 +234,16 @@ var LowerPlayerLayer = PlayerLayer.extend({
         this._cardCountLabel.setPosition(cc.p(440, 240));
 
         this._cardsBox.setPosition(cc.p(330, 220));
+    },
+
+    setReady: function(isReady) {
+        this._super(isReady);
+        this._readySprite.setPosition(cc.p(400,260));
+    },
+
+    setCardCount: function(number) {
+        this._super(number);
+        this._cardThumbSprite.setPosition(cc.p(420,240));
     }
 });
 
@@ -249,13 +269,16 @@ var MyselfLayer = PlayerLayer.extend({
 
         this._avatarBackgroundSprite.setPosition(cc.p(35,65));
 
-        this._readySprite.setPosition(cc.p(70,70));
-
         this._nameLabel.setPosition(cc.p(35, 100));
 
         this._messageLabel.setPosition(cc.p(35, 60));
 
         this._cardsBox.setPosition(cc.p(130, 90));
+    },
+
+    setReady: function(isReady) {
+        this._super(isReady);
+        this._readySprite.setPosition(cc.p(70,70));
     }
 });
 

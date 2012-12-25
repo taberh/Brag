@@ -73,14 +73,17 @@ var GameMenu = cc.Menu.extend({
     },
 
     onTurnon: function() {
+        this.turnonButton.selected();
         this.scene && this.scene.turnon && this.scene.turnon();
     },
 
     onBelieve: function() {
+        this.believeButton.selected();
         this.scene && this.scene.believe && this.scene.believe();
     },
 
     onFollow: function() {
+        this.followButton.selected();
         this.scene && this.scene.follow && this.scene.follow();
     },
 
@@ -92,6 +95,9 @@ var GameMenu = cc.Menu.extend({
         this.turnonButton.setVisible(visible);
         this.believeButton.setVisible(visible);
         this.followButton.setVisible(visible);
+        this.turnonButton.setEnabled(false);
+        this.believeButton.setEnabled(false);
+        this.followButton.setEnabled(false);
     }
 });
 

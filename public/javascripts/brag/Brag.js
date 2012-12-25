@@ -16,11 +16,11 @@
  */
 var Brag = (function() {
 
-    var PLAYER_STATUS_NONE = 0,
-        PLAYER_STATUS_WAIT = 1,
-        PLAYER_STATUS_READY = 2,
-        PLAYER_STATUS_PLAYING = 3,
-        PLAYER_STATUS_TRUSTEESHIP = 4;
+    this.PLAYER_STATUS_NONE = 0;
+    this.PLAYER_STATUS_WAIT = 1;
+    this.PLAYER_STATUS_READY = 2;
+    this.PLAYER_STATUS_PLAYING = 3;
+    this.PLAYER_STATUS_TRUSTEESHIP = 4;
 
     var instance = null;
 
@@ -33,10 +33,17 @@ var Brag = (function() {
     function Brag() {
         this._socket = null;
 
-        this.cards = [];
-        this.index = -1;
-        this.value = 0;
         this.players = [];
+        this.cards = null;
+        this.index = -1;
+        this.operator = -1;
+
+        this.currentValue = 0;
+        this.followCards = [];
+
+        this.turnonPlayerIndex = -1;
+        this.turnonCardIndex = -1;
+
         this.connected = false; 
         this.playing = false;
         this.scene = null;
@@ -57,7 +64,7 @@ var Brag = (function() {
             this._socket.on('room leave', wrapFunc(this._onLeave, this));
             this._socket.on('room interrupt', wrapFunc(this._onInterrupt, this));
             this._socket.on('player ready', wrapFunc(this._onReady, this));
-            this._socket.on('palyer operate', wrapFunc(this._onOperate, this));
+            this._socket.on('player operate', wrapFunc(this._onOperate, this));
             
             function wrapFunc(func, target) {
                 return function() {
@@ -281,9 +288,34 @@ var Brag = (function() {
             if (result.status === 0) {
                 if (result.data.winner !== undefined) {
                     this.playing = false;
+                    this.cards = null;
+                    this.operator = -1;
+                    this.currentValue = 0;
+                    this.followCards = [];
+                    this.turnonPlayerIndex = -1;
+                    this.turnonCardIndex = -1;
+
+                    this.players.forEach(function(player) {
+                        player['status'] = PLAYER_STATUS_NONE;
+                    });
                 }
                 else {
                     this.playing = true;
+                    this.operator = result.data.operator;
+                    
+                    if (this.cards === null) {
+                        this.cards = result.data.cards;
+                    }
+                    else {
+                        this.cards.forEach(function(card, i) {
+                            if (typeof card === 'number') {
+                                return result.data.cards[i];
+                            }
+                            else {
+                                return card;
+                            }
+                        });
+                    }
                 }
             }
 
