@@ -11,8 +11,8 @@ var s_clock = dirImg + 'clock.png';
 var s_card_bg = dirImg + 'card-bg.png';
 var s_card_suit = dirImg + 'card-suit.png';
 var s_card_value = dirImg + 'card-value.png';
-var s_weibo_login_logo = dirImg + 'connect_logo_3.png';
-var s_qzone_login_logo = dirImg + 'weibo-login-logo.png';
+var s_qzone_login_logo = dirImg + 'connect_logo_3.png';
+var s_weibo_login_logo = dirImg + 'weibo-login-logo.png';
 
 var g_ressources = [
     {type:'image', src:s_bg},

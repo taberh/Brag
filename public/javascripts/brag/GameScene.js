@@ -25,8 +25,8 @@ var GameScene = cc.Scene.extend({
     coverLayer: null,
     brag: null,
 
-    clockPos: [],
-    movePos: [],
+    clockPos: [cc.p(80, 100), cc.p(400, 280), cc.p(80, 280)],
+    movePos: [cc.p(35, 80), cc.p(445, 285), cc.p(35, 285)],
 
     init: function(venueID, roomID, password) {
         this._super();
@@ -198,13 +198,24 @@ var GameScene = cc.Scene.extend({
 
             // set operator and status
             this.tablesLayer.setClockVisible(true);
-            this.tablesLayer.setClockPosition(this.clockPos[result.data.operator]);
+
+            switch(result.data.operator) {
+                case this.myselfIndex:
+                    this.tablesLayer.setClockPosition(this.clockPos[0]);
+                    break;
+                case this.upperIndex:
+                    this.tablesLayer.setClockPosition(this.clockPos[2]);
+                    break;
+                case this.lowerIndex:
+                    this.tablesLayer.setClockPosition(this.clockPos[1]);
+                    break;
+            }
             
             if (result.data.operator === this.myselfIndex) {
                 this.menuLayer.setKeyboardVisible(true);
 
                 if (!result.data.operate || result.data.operate.card) {
-                    this.menuLayer.setValuesVisible(true);
+                    this.menuLayer.setValueItemsVisible(true);
                 }
             }
 
@@ -230,9 +241,23 @@ var GameScene = cc.Scene.extend({
     },
 
     movePublicCardsTo: function(playerIndex) {
-        this.upperPlayerLayer.movePublicCardsToPoint(this.movePos[playerIndex]);
-        this.lowerPlayerLayer.movePublicCardsToPoint(this.movePos[playerIndex]);
-        this.myselfLayer.movePublicCardsToPoint(this.movePos[playerIndex]);
+        switch(playerIndex) {
+            case this.myselfIndex:
+                    this.upperPlayerLayer.movePublicCardsToPoint(this.movePos[0]);
+                    this.lowerPlayerLayer.movePublicCardsToPoint(this.movePos[0]);
+                    this.myselfLayer.movePublicCardsToPoint(this.movePos[0]);
+                break;
+            case this.lowerIndex:
+                    this.upperPlayerLayer.movePublicCardsToPoint(this.movePos[1]);
+                    this.lowerPlayerLayer.movePublicCardsToPoint(this.movePos[1]);
+                    this.myselfLayer.movePublicCardsToPoint(this.movePos[1]);
+                break;
+            case this.upperIndex:
+                    this.upperPlayerLayer.movePublicCardsToPoint(this.movePos[2]);
+                    this.lowerPlayerLayer.movePublicCardsToPoint(this.movePos[2]);
+                    this.myselfLayer.movePublicCardsToPoint(this.movePos[2]);
+                break;
+        }
     },
 
     selectedFollowCard: function() {

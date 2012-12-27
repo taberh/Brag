@@ -96,7 +96,7 @@ var PlayerLayer = cc.Layer.extend({
     },
 
     setCardCount: function(number) {
-        if (!this._cardCountLabel || !this._cardThumbSprite)
+        if (!this._cardCountLabel)
             return;
 
         this._cardCountLabel.setString(''+number);
@@ -219,7 +219,7 @@ var UpperPlayerLayer = PlayerLayer.extend({
 
         this._messageLabel.setPosition(cc.p(35, 240));
 
-        this._cardCountLabel.setPosition(cc.p(40, 240));
+        this._cardCountLabel.setPosition(cc.p(60, 240));
 
         this._cardsPublicBox.setPosition(cc.p(150, 220));
     },
@@ -258,7 +258,7 @@ var LowerPlayerLayer = PlayerLayer.extend({
 
         this._messageLabel.setPosition(cc.p(445, 240));
 
-        this._cardCountLabel.setPosition(cc.p(440, 240));
+        this._cardCountLabel.setPosition(cc.p(460, 240));
 
         this._cardsPublicBox.setPosition(cc.p(330, 220));
     },

@@ -22,11 +22,14 @@ var GameMenu = cc.Menu.extend({
     followButton: null,
     readyButton: null,
 
-    _values: null,
+    _valueItems: [],
+    _VALUE_ITEM_BASE_TAG: 900,
 
     initMenu: function() {
 
         cc.MenuItemFont.setFontSize(16);
+
+        var items = [];
 
         var backButton = cc.MenuItemFont.create('返回', this, this.onBack);
         backButton.setPosition(cc.p(140, 300));
@@ -54,8 +57,31 @@ var GameMenu = cc.Menu.extend({
 
         this.setKeyboardVisible(false);
         this.readyButton.setVisible(false);
+
+        this.createValueItems();
+        this.setValueItemsVisible(false);
+
+        items.push(backButton);
+        items.push(switchRoomButton);
+        items.push(toggleSoundButton);
+        items.push(toggleFaceButton);
+        items.push(this.turnonButton);
+        items.push(this.believeButton);
+        items.push(this.followButton);
+        items.push(this.readyButton);
+
+        items = items.concat(this._valueItems);
         
         this.initWithArray([backButton, switchRoomButton, toggleSoundButton, toggleFaceButton, this.turnonButton, this.believeButton, this.followButton, this.readyButton]);
+    },
+
+    createValueItems: function() {
+        for (var i = 1; i < 14; i++) {
+            var item = cc.MenuItemFont.create(''+i, this, this.onSelectedValue);
+            item.setTag(this._VALUE_ITEM_BASE_TAG + i);
+            item.setPosition(cc.p(i*30, 160));
+            this._valueItems.push(item);
+        }
     },
 
     onBack: function(target) {
@@ -93,7 +119,9 @@ var GameMenu = cc.Menu.extend({
         this.scene && this.scene.ready && this.scene.ready();
     },
 
-    onSelectedValue: function() {
+    onSelectedValue: function(target) {
+        var value = target.getTag() - this._VALUE_ITEM_BASE_TAG;
+        this.scene && this.scene.selectedValue && this.scene.selectedValue(value);
     },
 
     setKeyboardVisible: function(visible) {
@@ -102,9 +130,11 @@ var GameMenu = cc.Menu.extend({
         this.followButton.setVisible(visible);
     },
 
-    setValuesVisible: function(visible) {
-        this._values.setVisible(visible);
-    }
+    setValueItemsVisible: function(visible) {
+        for (var i = 0, l = this._valueItems.length; i < l; i++) {
+                this._valueItems[i].setVisible(visible);
+            }
+        }
 });
 
 /*
