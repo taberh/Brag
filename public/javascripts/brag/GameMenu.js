@@ -22,6 +22,8 @@ var GameMenu = cc.Menu.extend({
     followButton: null,
     readyButton: null,
 
+    _values: null,
+
     initMenu: function() {
 
         cc.MenuItemFont.setFontSize(16);
@@ -50,7 +52,7 @@ var GameMenu = cc.Menu.extend({
         this.readyButton = cc.MenuItemFont.create('准备', this, this.onReady);
         this.readyButton.setPosition(cc.p(250, 65));
 
-        this.visibleKeyboard(false);
+        this.setKeyboardVisible(false);
         this.readyButton.setVisible(false);
         
         this.initWithArray([backButton, switchRoomButton, toggleSoundButton, toggleFaceButton, this.turnonButton, this.believeButton, this.followButton, this.readyButton]);
@@ -91,13 +93,17 @@ var GameMenu = cc.Menu.extend({
         this.scene && this.scene.ready && this.scene.ready();
     },
 
-    visibleKeyboard: function(visible) {
+    onSelectedValue: function() {
+    },
+
+    setKeyboardVisible: function(visible) {
         this.turnonButton.setVisible(visible);
         this.believeButton.setVisible(visible);
         this.followButton.setVisible(visible);
-        this.turnonButton.setEnabled(false);
-        this.believeButton.setEnabled(false);
-        this.followButton.setEnabled(false);
+    },
+
+    setValuesVisible: function(visible) {
+        this._values.setVisible(visible);
     }
 });
 

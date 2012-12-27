@@ -25,6 +25,9 @@ var GameScene = cc.Scene.extend({
     coverLayer: null,
     brag: null,
 
+    clockPos: [],
+    movePos: [],
+
     init: function(venueID, roomID, password) {
         this._super();
 
@@ -94,7 +97,7 @@ var GameScene = cc.Scene.extend({
 
     onEntrance: function(result) {
         if (result.status === 0) {
-            if (result.data.pIdx === this.upperPlayerLayer.index) {
+            if (result.data.pIdx === this.upperIndex) {
                 this._setPlayerInfo(this.upperPlayerLayer, result.data.player);
             }
             else {
@@ -108,7 +111,7 @@ var GameScene = cc.Scene.extend({
 
     onReady: function(result) {
         if (result.status === 0) {
-            if (result.data.pIdx === this.upperPlayerLayer.index) {
+            if (result.data.pIdx === this.upperIndex) {
                 this.upperPlayerLayer.setReady(true);
             }
             else {
@@ -122,7 +125,7 @@ var GameScene = cc.Scene.extend({
 
     onLeave: function(result) {
         if (result.status === 0) {
-            if (result.data.pIdx === this.upperPlayerLayer.index) {
+            if (result.data.pIdx === this.upperIndex) {
                 this._removePlayerInfo(this.upperPlayerLayer);
                 this.upperPlayerLayer.setReady(false);
             }
@@ -138,13 +141,98 @@ var GameScene = cc.Scene.extend({
 
     onOperate: function(result) {
         if (result.status === 0) {
+            var cards = result.data.cards;
+
+            // 1.pase operate
+            if (!result.data.operate) { // start 
+                // remove ready 
+                this.upperPlayerLayer.setReady(false);
+                this.lowerPlayerLayer.setReady(false);
+                this.myselfLayer.setReady(false);
+
+            }
+            else {
+                var playerLayer;
+                
+                switch(result.data.operate.owner) {
+                    case this.myselfIndex:
+                        playerLayer = this.myselfLayer;
+                        break;
+                    case this.upperIndex:
+                        playerLayer = this.upperPlayerLayer;
+                        break;
+                    case this.lowerIndex:
+                        playerLayer = this.lowerPlayerLayer;
+                        break;
+                }
+
+                if (result.data.operate.cards)  {// follow
+                    playerLayer.setPublicCards(result.data.operate.cards);
+                    playerLayer.setMessage(result.data.operate.cards + '个' + result.data.value);
+                } // turnon
+                else if (result.data.operate.card) {
+                    var otherLayer;
+
+                    switch(result.data.operate.pIdx) {
+                        case this.myselfIndex:
+                            otherLayer = this.myselfLayer;
+                            break;
+                        case this.upperIndex:
+                            otherLayer = this.upperPlayerLayer;
+                            break;
+                        case this.lowerIndex:
+                            otherLayer = this.lowerPlayerLayer;
+                            break;
+                    }
+
+                    otherLayer.turnonCard(result.data.operate.cIdx, result.data.operate.card, this, this.turnonCardComplete, result.operate);
+                    playerLayer.setMessage('翻牌');
+                } // believe 
+                else {
+                    playerLayer.setMessage('我信');
+                }
+            }
+
+            // set card value
+            this.tablesLayer.setCardValue(result.data.value ? result.data.value : '');
+
+            // set operator and status
+            this.tablesLayer.setClockVisible(true);
+            this.tablesLayer.setClockPosition(this.clockPos[result.data.operator]);
             
+            if (result.data.operator === this.myselfIndex) {
+                this.menuLayer.setKeyboardVisible(true);
+
+                if (!result.data.operate || result.data.operate.card) {
+                    this.menuLayer.setValuesVisible(true);
+                }
+            }
+
+            // set cards
+            this.upperPlayerLayer.setCardCount(cards[this.upperIndex]);
+            this.lowerPlayerLayer.setCardCount(cards[this.lowerIndex]);
+            this.myselfLayer.setPrivateCards(cards[this.myselfIndex]);
         }
         else {
             // alert error message
         }
 
         console.log(this.brag);
+    },
+
+    turnonCardComplete: function(operate) {
+        if (operate.value === operate.card.value) {
+            this.movePublicCardsTo(operate.owner);
+        }
+        else {
+            this.movePublicCardsTo(operate.pIdx);
+        }
+    },
+
+    movePublicCardsTo: function(playerIndex) {
+        this.upperPlayerLayer.movePublicCardsToPoint(this.movePos[playerIndex]);
+        this.lowerPlayerLayer.movePublicCardsToPoint(this.movePos[playerIndex]);
+        this.myselfLayer.movePublicCardsToPoint(this.movePos[playerIndex]);
     },
 
     selectedFollowCard: function() {
@@ -155,7 +243,7 @@ var GameScene = cc.Scene.extend({
         this.brag.turnonCardIndex = cardIndex;
         this.brag.turnonPlayerIndex = playerIndex;
 
-        if (playerIndex === this.upperPlayerLayer.index) {
+        if (playerIndex === this.upperIndex) {
             this.lowerPlayerLayer.unselectedCard();
         }
         else {
@@ -242,6 +330,9 @@ var GameScene = cc.Scene.extend({
                 _this.myselfLayer.index = myIdx;
                 _this.upperPlayerLayer.index = upIdx;
                 _this.lowerPlayerLayer.index = loIdx;
+                _this.upperIndex = upIdx;
+                _this.lowerIndex = loIdx;
+                _this.myselfIndex = myIdx;
 
                 if (upPlayer) {
                     _this._setPlayerInfo(_this.upperPlayerLayer, upPlayer);

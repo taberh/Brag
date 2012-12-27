@@ -26,7 +26,7 @@ var CoverLayer = cc.LayerColor.extend({
 
         this.initWithColor(color, winSize.width, winSize.height);
 
-        this._statusLabel = cc.LabelTTF.create('', 'Times New Roman', 16, cc.size(200, 30), cc.TEXT_ALIGNMENT_CENTER);
+        this._statusLabel = cc.LabelTTF.create('', 'Times New Roman', 16, cc.size(460, 30), cc.TEXT_ALIGNMENT_CENTER);
         this._statusLabel.setColor(cc.c3(255,255,255));
         this._statusLabel.setPosition(cc.p(winSize.width/2, winSize.height/2));
 

@@ -240,48 +240,6 @@ var Brag = (function() {
             this.scene && this.scene.onReady && this.scene.onReady(result);
         },
 
-        /*
-        // throw cards
-        data = { 
-            cards: [18,18,18],
-            operate: {
-                cards: 3,
-                owner: 2
-            },
-            operater: 0,
-            value: 3
-        }
-        // believe
-        data = {
-            cards: [18,18,18],
-            operate: {
-                "owner": 1
-            },
-            operater: 1,
-            value:3
-        }
-        // turnon
-        data = {
-            cards: [18,18,18],
-            operate: {
-                card: {
-                    "index": 42,
-                    "suit": 4,
-                    "value": 4
-                },
-                "pIdx":0,
-                "cIdx":1,
-                "owner": 2
-            },
-            operater: 2,
-            value: 0
-        }
-        // game over
-        data = {
-            win: 0
-        }
-        */
-
         _onOperate: function(result) {
             console.log(result.message || result.error && result.error.message);
 
@@ -303,7 +261,7 @@ var Brag = (function() {
                     this.playing = true;
                     this.operator = result.data.operator;
                     
-                    if (this.cards === null) {
+                    /*if (this.cards === null) {
                         this.cards = result.data.cards;
                     }
                     else {
@@ -315,7 +273,7 @@ var Brag = (function() {
                                 return card;
                             }
                         });
-                    }
+                    }*/
                 }
             }
 

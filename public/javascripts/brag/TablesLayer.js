@@ -19,6 +19,7 @@ var TablesLayer = cc.Layer.extend({
 
     _clockSprite: null,
     _clockTimeLabel: null,
+    _cardValueLabel: null,
 
     init: function() {
         if (!this._super()) {
@@ -38,9 +39,13 @@ var TablesLayer = cc.Layer.extend({
         this._clockTimeLabel = cc.LabelTTF.create('', App.NORMAL_FONT, 12, cc.size(80, 20), cc.TEXT_ALIGNMENT_CENTER);
         this._clockTimeLabel.setVisible(false);
 
+        this._cardValueLabel = cc.LabelTTF.create('', App.NORMAL_FONT, 18, cc.size(100, 30), cc.TEXT_ALIGNMENT_CENTER);
+        this._cardValueLabel.setPosition(cc.p(240, 300));
+
         this.addChild(backgroundSprite);
         this.addChild(this._clockSprite);
         this.addChild(this._clockTimeLabel);
+        this.addChild(this._cardValueLabel);
 
         return true;
     },
@@ -57,6 +62,10 @@ var TablesLayer = cc.Layer.extend({
 
     setClockTime: function(time) {
         this._clockTimeLabel.setString(''+time);
+    },
+
+    setCardValue: function(value) {
+        this._cardValueLabel.setString(''+value);
     }
 });
 

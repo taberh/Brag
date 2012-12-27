@@ -1,0 +1,104 @@
+开始 {
+    "name": "player operate",
+    "args": [{
+        "status": 0,
+        "message": "开始游戏，player index: 2",
+        "data": {
+            "operator": 2,
+            "cards": [18, 18, [{
+                "index": 4,
+                "suit": 1,
+                "value": 5
+            },...]]
+        }
+    }]
+}
+出牌
+ {
+    "name": "player operate",
+    "args": [{
+        "status": 0,
+        "message": "操作成功",
+        "data": {
+            "operate": {
+                "cards": 4,
+                "owner": 2
+            },
+            "operator": 0,
+            "value": 5,
+            "cards": [18, 18, [{
+                "index": 27,
+                "suit": 3,
+                "value": 2
+            },...]]
+        }
+    }]
+}
+跟牌
+ {
+    "name": "player operate",
+    "args": [{
+        "status": 0,
+        "message": "操作成功",
+        "data": {
+            "operate": {
+                "cards": 2,
+                "owner": 0
+            },
+            "operator": 1,
+            "value": 5,
+            "cards": [16, 18, [{
+                "index": 27,
+                "suit": 3,
+                "value": 2
+            },...]]
+        }
+    }]
+}
+相信
+ {
+    "name": "player operate",
+    "args": [{
+        "status": 0,
+        "message": "操作成功",
+        "data": {
+            "operate": {
+                "owner": 1
+            },
+            "operator": 2,
+            "value": 5,
+            "cards": [16, 18, [{
+                "index": 27,
+                "suit": 3,
+                "value": 2
+            },...]]
+        }
+    }]
+}
+翻牌
+ {
+    "name": "player operate",
+    "args": [{
+        "status": 0,
+        "message": "操作成功",
+        "data": {
+            "operate": {
+                "card": {
+                    "index": 18,
+                    "suit": 2,
+                    "value": 6
+                },
+                "pIdx": 0,
+                "cIdx": 0,
+                "owner": 2
+            },
+            "operator": 2,
+            "value": 0,
+            "cards": [22, 18, [{
+                "index": 27,
+                "suit": 3,
+                "value": 2
+            },...]]
+        }
+    }]
+}

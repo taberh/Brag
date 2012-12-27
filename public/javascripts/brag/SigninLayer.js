@@ -32,10 +32,10 @@ var SigninLayer = cc.LayerColor.extend({
 
         this._coverLayer = CoverLayer.create();
 
-        this._sLoginButton = cc.MenuItemImage.create(n_weibo_login_logo, null, this, this.doLogin);
+        this._sLoginButton = cc.MenuItemImage.create(s_weibo_login_logo, null, this, this.doLogin);
         this._sLoginButton.setPosition(cc.p(203, 130));
 
-        this._qLoginButton = cc.MenuItemImage.create(n_qzone_login_logo, null, this, this.doLogin);
+        this._qLoginButton = cc.MenuItemImage.create(s_qzone_login_logo, null, this, this.doLogin);
         this._qLoginButton.setPosition(cc.p(200, 200));
         this._qLoginButton.setTag(this._QQ_LOGIN_BUTTON_TAG);
 

@@ -24,11 +24,13 @@ var PlayerLayer = cc.Layer.extend({
     _nameLabel: null,
     _messageLabel: null,
     _cardCountLabel: null,
-    _cardsBox: null,
+    _cardsPublicBox: null,
 
     _CARD_BASE_TAG: 200,
 
     index: -1,
+    selectedPublicCardIndex: -1,
+    publicCards: [],
 
     init: function() {
         this._super();
@@ -43,14 +45,14 @@ var PlayerLayer = cc.Layer.extend({
 
         this._avatarBackgroundSprite = cc.Sprite.create(s_avatar_bg);
 
-        this._cardsBox = cc.Menu.create();
-        this._cardsBox.setContentSize(cc.size(160, 40));
+        this._cardsPublicBox = cc.Menu.create();
+        this._cardsPublicBox.setContentSize(cc.size(160, 40));
 
         this.addChild(this._nameLabel);
         this.addChild(this._messageLabel);
         this.addChild(this._cardCountLabel);
         this.addChild(this._avatarBackgroundSprite);
-        this.addChild(this._cardsBox);
+        this.addChild(this._cardsPublicBox);
     },
 
     setReady: function(isReady) {
@@ -115,25 +117,42 @@ var PlayerLayer = cc.Layer.extend({
         }
     },
 
-    setCards: function(number) {
+    setPublicCards: function(number) {
         if (!number || typeof number !== 'number') 
             return;
 
-        var i = 0,
-            padding = this._countCardsInterval(number);
-
-        for ( ; i < number; i++) {
-            this._insertCard(i);
+        if (this.publicCards.length) {
+            this._moveCardsToFrame(this.publicCards, cc.p(240, 270), insert);
+        }
+        else {
+            insert.call(this);
         }
 
-        this._cardsBox.alignItemsHorizontallyWithPadding(padding);
+        function insert() {
+            var i = 0,
+                padding = this._countCardsInterval(number, this._cardsPublicBox);
+
+            for ( ; i < number; i++) {
+                this._insertPublicCard(i);
+            }
+
+            this._cardsPublicBox.alignItemsHorizontallyWithPadding(padding);
+        }
     },
 
-    turnonCard: function(index, card, target, callback) {
+    _moveCardsToPoint: function(cards, point, calback) {
+        for (var i = 0, l = cards.length; i < l; i++) {
+            cards[i].setPosition(point);   
+        }
 
+        callback.call(this);
     },
 
-    moveCardsToFrame: function(frame, overlying, callback) {
+    turnonCard: function(index, card, target, callback, operate) {
+        callback(operate);
+    },
+
+    movePublicCardsToPoint: function(point, target, callback) {
     },
 
     disabledCards: function() {
@@ -149,29 +168,37 @@ var PlayerLayer = cc.Layer.extend({
     },
 
     unselectedCard: function() {
+        if (this.selectedPublicCardIndex < 0) {
+            return;
+        }
 
+        var card = this.publicCards[this.selectedPublicCardIndex];
+
+        if (card) {
+            card.unselected();
+        }
+
+        this.selectedPublicCardIndex = -1;
     },
 
-    _insertCard: function(index) {
-        var cardItem = cc.MenuItemSprite.create(s_card_normal, s_card_selected, s_card_disabled, this, this._onSelectedCard);
+    _insertPublicCard: function(index) {
+        var cardItem = cc.MenuItemSprite.create(s_card_bg, this, this._onSelectedPublicCard);
         cardItem.setTag(this._CARD_BASE_TAG + index);
-        this.cards.push(cardItem);
-        this._cardsBox.addChild(cardItem);
+        this.publicCards.push(cardItem);
+        this._cardsPublicBox.addChild(cardItem);
     },
 
-    _countCardsInterval: function(number) {
-        var boxSize = this._cardsBox.getContentSize(),
+    _countCardsInterval: function(number, box) {
+        var boxSize = box.getContentSize(),
             cardSize = 30;
 
         return (boxSize - cardSize * number) / (number - 1);
     },
 
-    _onSelectedCard: function(target) {
-        var tag = target.getTag() - this._CARD_BASE_TAG;
-
+    _onSelectedPublicCard: function(target) {
         target.selected();
-
-        this.scene && this.scene.selectedTurnonCard(this.index, tag);
+        this.selectedPublicCardIndex = target.getTag() - this._CARD_BASE_TAG;
+        this.scene && this.scene.selectedPublicCard && this.scene.selectedPublicCard(this.index, this.selectedPublicCardIndex);
     }
 });
 
@@ -194,7 +221,7 @@ var UpperPlayerLayer = PlayerLayer.extend({
 
         this._cardCountLabel.setPosition(cc.p(40, 240));
 
-        this._cardsBox.setPosition(cc.p(150, 220));
+        this._cardsPublicBox.setPosition(cc.p(150, 220));
     },
 
     setReady: function(isReady) {
@@ -233,7 +260,7 @@ var LowerPlayerLayer = PlayerLayer.extend({
 
         this._cardCountLabel.setPosition(cc.p(440, 240));
 
-        this._cardsBox.setPosition(cc.p(330, 220));
+        this._cardsPublicBox.setPosition(cc.p(330, 220));
     },
 
     setReady: function(isReady) {
@@ -273,12 +300,15 @@ var MyselfLayer = PlayerLayer.extend({
 
         this._messageLabel.setPosition(cc.p(35, 60));
 
-        this._cardsBox.setPosition(cc.p(130, 90));
+        this._cardsPublicBox.setPosition(cc.p(130, 90));
     },
 
     setReady: function(isReady) {
         this._super(isReady);
         this._readySprite.setPosition(cc.p(70,70));
+    },
+
+    setPrivateCards: function(cards) {
     }
 });
 
