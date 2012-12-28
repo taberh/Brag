@@ -53,6 +53,7 @@
             'javascripts/brag/AccountLayer.js',
             'javascripts/brag/MainScene.js',
 
+            'javascripts/brag/CardMenuItem.js',
             'javascripts/brag/PlayerLayer.js',
             'javascripts/brag/TablesLayer.js',
             'javascripts/brag/GameMenu.js',
