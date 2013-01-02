@@ -44,22 +44,22 @@ var GameMenu = cc.Menu.extend({
         toggleFaceButton.setPosition(cc.p(330, 300));
 
         this.turnonButton = cc.MenuItemFont.create('翻牌', this, this.onTurnon);
-        this.turnonButton.setPosition(cc.p(100, 65));
+        this.turnonButton.setPosition(cc.p(100, 85));
 
         this.believeButton = cc.MenuItemFont.create('相信', this, this.onBelieve);
-        this.believeButton.setPosition(cc.p(150, 65));
+        this.believeButton.setPosition(cc.p(150, 85));
 
         this.followButton = cc.MenuItemFont.create('出牌', this, this.onFollow);
-        this.followButton.setPosition(cc.p(200, 65));
+        this.followButton.setPosition(cc.p(200, 85));
 
         this.readyButton = cc.MenuItemFont.create('准备', this, this.onReady);
-        this.readyButton.setPosition(cc.p(250, 65));
+        this.readyButton.setPosition(cc.p(250, 85));
 
+        this._createValueItems();
+
+        this.setValueItemsVisible(false);
         this.setKeyboardVisible(false);
         this.readyButton.setVisible(false);
-
-        this.createValueItems();
-        this.setValueItemsVisible(false);
 
         items.push(backButton);
         items.push(switchRoomButton);
@@ -72,13 +72,13 @@ var GameMenu = cc.Menu.extend({
 
         items = items.concat(this._valueItems);
         
-        this.initWithArray([backButton, switchRoomButton, toggleSoundButton, toggleFaceButton, this.turnonButton, this.believeButton, this.followButton, this.readyButton]);
+        this.initWithArray(items);
     },
 
-    createValueItems: function() {
+    _createValueItems: function() {
         for (var i = 1; i < 14; i++) {
-            var item = cc.MenuItemFont.create(''+i, this, this.onSelectedValue);
-            item.setTag(this._VALUE_ITEM_BASE_TAG + i);
+            var item = ValueMenuItem.create(i);
+            item.menu = this;
             item.setPosition(cc.p(i*30, 160));
             this._valueItems.push(item);
         }
@@ -101,17 +101,14 @@ var GameMenu = cc.Menu.extend({
     },
 
     onTurnon: function() {
-        this.turnonButton.selected();
         this.scene && this.scene.turnon && this.scene.turnon();
     },
 
     onBelieve: function() {
-        this.believeButton.selected();
         this.scene && this.scene.believe && this.scene.believe();
     },
 
     onFollow: function() {
-        this.followButton.selected();
         this.scene && this.scene.follow && this.scene.follow();
     },
 
@@ -119,8 +116,7 @@ var GameMenu = cc.Menu.extend({
         this.scene && this.scene.ready && this.scene.ready();
     },
 
-    onSelectedValue: function(target) {
-        var value = target.getTag() - this._VALUE_ITEM_BASE_TAG;
+    selectedValue: function(value) {
         this.scene && this.scene.selectedValue && this.scene.selectedValue(value);
     },
 
