@@ -18,10 +18,18 @@ function ajax(opt) {
 
     xhr.open(opt.method, opt.url, true);
     xhr.onreadystatechange = function() {
-        if (xhr.status === 200 && xhr.readyState === 4) {
-            opt.success(JSON.parse(xhr.responseText));
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                opt.success && opt.success(JSON.parse(xhr.responseText));
+            }
+            else if (xhr.status > 300) {
+                opt.error && opt.error();
+            }
         }
     };
+    xhr.onerror = xhr.onabort = function() {
+        opt.error && opt.error();
+    }
 
     if (opt.method === 'POST') {
         xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
