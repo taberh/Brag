@@ -57,7 +57,7 @@ var CoverLayer = cc.LayerColor.extend({
         this._statusLabel.setString(string);
     },
 
-    visibleCancel: function(visible) {
+    setCancelvisible: function(visible) {
         this._cancelButton.setVisible(visible);
     },
 
