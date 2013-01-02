@@ -65,7 +65,7 @@ var GameScene = cc.Scene.extend({
         this._setPlayerInfo(this.myselfLayer, App.user);
 
         this.coverLayer.setOpacity(255);
-        this.coverLayer.visibleCancel(true);
+        this.coverLayer.setCancelVisible(true);
         this.coverLayer.setStatus('正在进入房间...');
 
         this.brag = Brag.getInstance();
