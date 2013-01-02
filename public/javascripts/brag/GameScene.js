@@ -425,6 +425,8 @@ var GameScene = cc.Scene.extend({
             return alert('游戏中，不能退出');
         }
 
+        this.leave(false);
+
         this.runMainScene();
     },
 
