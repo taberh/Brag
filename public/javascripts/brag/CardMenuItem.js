@@ -21,6 +21,7 @@ var CardMenuItem = cc.MenuItemSprite.extend({
         var normalSprite = cc.Sprite.create(s_card_bg);
 
         this.initWithNormalSprite(normalSprite);
+        this.setCallback(this, this.onSelected);
 
         var s_r = cc.rect((card.suit-1) * 20, 0, 20, 19);
         var v_r = cc.rect((card.value-1) * 40, 0, 40, 40);
@@ -34,6 +35,25 @@ var CardMenuItem = cc.MenuItemSprite.extend({
         this.addChild(valueSprite);
 
         this.index = card.index;
+    },
+
+    onSelected: function(target) {
+        this.toggle();
+    },
+
+    toggle: function() {
+        var pos = this.getPosition();
+
+        if (this._selected) {
+            this._selected = false;
+            this.setPosition(cc.p(pos.x, pos.y-10));
+        }
+        else {
+            this._selected = true;
+            this.setPosition(cc.p(pos.x, pos.y+10));
+        }
+
+        console.log(this.index);
     }
 });
 
