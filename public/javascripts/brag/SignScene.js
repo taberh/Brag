@@ -23,10 +23,13 @@ var SignScene = cc.Scene.extend({
         this._super();
         this.signinLayer = SigninLayer.create();
         this.signinLayer.scene = this;
+        this.signinLayer.setCoverLayerScene(this);
         this.addChild(this.signinLayer);
     },
 
     runLobbyScene: function() {
+        if (this.lock) return;
+
         var director = cc.Director.getInstance();
         director.replaceScene(MainScene.create());
     },
@@ -34,6 +37,8 @@ var SignScene = cc.Scene.extend({
     // auth with qq
     authWithQ: function() {
         var _this = this;
+
+        this.lock = false;
 
         QC.Login({}, function(a,b) { // login success callback
             var o = QC.Login._getTokenKeys();
@@ -63,6 +68,8 @@ var SignScene = cc.Scene.extend({
     // auth with sina weibo
     authWithW: function() {
         var _this = this;
+
+        this.lock = false;
 
         if (WB2.checkLogin()) {
             success();
@@ -108,11 +115,23 @@ var SignScene = cc.Scene.extend({
                 openid: userInfo.openid
             },
             success: function(result) {
+                if (_this.lock) return;
+
                 if (result.status === 0) {
                     callback(result.data); // return user data
                 }
                 else if (result.status === 112) {
                     _this._signup(userInfo, callback);
+                }
+                else {
+                    callback('登录失败');
+                }
+            },
+            error: function(err) {
+                if (_this.lock) return;
+
+                if (err && err.message) {
+                    callback(err.message);
                 }
                 else {
                     callback('登录失败');
@@ -131,17 +150,31 @@ var SignScene = cc.Scene.extend({
             method: 'POST',
             params: userInfo,
             success: function(result) {
+                if (_this.lock) return;
+
                 if (result.status === 0) {
                     _this._signin(userInfo, callback);
                 }
                 else {
                     callback(result.error && result.error.message || '注册失败');
                 }
+            },
+            error: function(err) {
+                if (_this.lock) return;
+
+                if (err && err.message) {
+                    callback(err.message);
+                }
+                else {
+                    callback('注册失败');
+                }
             }
         });
     },
 
     _authComplete: function(userInfo) {
+        if (this.lock) return;
+
         var _this = this;
 
         if (!userInfo || typeof userinfo === 'string') {
@@ -174,6 +207,7 @@ var SignScene = cc.Scene.extend({
 
     _signinError: function(message) {
         console.warn('Signin Error: ', message);
+        this.signinLayer.hideCover();
         alert(message);
     },
 
@@ -183,6 +217,11 @@ var SignScene = cc.Scene.extend({
 
     onConnectFailed: function() {
         alert('建立socket连接失败');
+    },
+
+    cancel: function() {
+        this.lock = true;
+        this.signinLayer.hideCover();
     }
 });
 
