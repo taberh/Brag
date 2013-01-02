@@ -50,7 +50,7 @@ var CoverLayer = cc.LayerColor.extend({
     hide: function() {
         this.runAction(cc.Sequence.create(cc.FadeTo.create(0.2, 0)));
         this.setStatus('');
-        this.visibleCancel(false);
+        this.setCancelVisible(false);
     },
 
     setStatus: function(string) {
