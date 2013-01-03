@@ -119,7 +119,9 @@ var GameMenu = cc.Menu.extend({
     },
 
     selectedValue: function(value) {
+        console.log('selected card value ', value);
         this.cardValue = value;
+        this.scene && this.scene.selectedCardValue && this.scene.selectedCardValue(value);
     },
 
     setKeyboardVisible: function(visible) {
