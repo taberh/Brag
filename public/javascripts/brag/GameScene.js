@@ -125,11 +125,73 @@ var GameScene = cc.Scene.extend({
         this.myselfLayer.movePublicCardsToPoint(pos);
     },
 
+    _initPlayer: function(player) {
+        player.setMessage('');
+        player.removePublicCards();
+
+        if (player instanceof MyselfLayer) {
+            player.removePrivateCards();
+        }
+        else {
+            player.setCardsVisible(false);
+        }
+    },
+
+    _initOperator: function(operator, value) {
+        var pos, isMyself, isNew;
+
+        isMyself = operator === this.myselfIndex;
+        isNew = value === 0;
+
+        switch(operator) {
+            case this.upperIndex:
+                pos = this.clockPos[2];
+                break;
+            case this.lowerIndex:
+                pos = this.clockPos[1];
+                break;
+            case this.myselfIndex:
+                pos = this.clockPos[0];
+                break;
+        }
+
+        this.menuLayer.setKeyboardVisible(isMyself);
+        this.menuLayer.setValueItemsVisible(isMyself && isNew);
+
+        this.tablesLayer.setClockPosition(pos);
+        this.tablesLayer.setClockVisible(true);
+        this._startCountDown();
+    },
+    
+    _startCountDown: function() {
+    },
+
+    _updateCards: function(cards) {
+        this.myselfLayer.setPrivateCards(cards[this.myselfIndex]);
+
+        this.upperPlayerLayer.setCardsVisible(true);
+        this.upperPlayerLayer.setCardsTotal(cards[this.upperIndex]);
+
+        this.lowerPlayerLayer.setCardsVisible(true);
+        this.lowerPlayerLayer.setCardsTotal(cards[this.lowerIndex]);
+    },
+
     /**
      * game over
      * @param {Number} winner
      */
     _over: function(winner) {
+        alert(this.brag.players[winner].nickname + '胜利');
+
+        this._initPlayer(this.upperPlayerLayer);
+        this._initPlayer(this.upperPlayerLayer);
+        this._initPlayer(this.myselfLayer);
+
+        this.menuLayer.setKeyboardVisible(false);
+        this.menuLayer.readyButton.setVisible(true);
+
+        this.tablesLayer.setClockVisible(false);
+        this.tablesLayer.setCardValue('');
     },
 
     /**
@@ -140,6 +202,9 @@ var GameScene = cc.Scene.extend({
         this.myselfLayer.setReady(false);
         this.upperPlayerLayer.setReady(false);
         this.lowerPlayerLayer.setReady(false);
+
+        this._updateCards(data.cards);
+        this._initOperator(data.operator, data.value);
     },
 
     /**
@@ -188,6 +253,13 @@ var GameScene = cc.Scene.extend({
     },
 
     /**
+     * selected card value
+     */
+    selectedCardValue: function(value) {
+        this.tablesLayer.setCardValue(value);
+    },
+
+    /**
      * send turnon operate event to server
      */
     turnon: function() {
@@ -209,12 +281,16 @@ var GameScene = cc.Scene.extend({
 
         this.menuLayer.turnonButton.selected();
         this.menuLayer.turnonButton.setEnabled(false);
+        this.lowerPlayerLayer.disabledPublicCards();
+        this.upperPlayerLayer.disabledPublicCards();
 
         this.brag.operate(params, function(result) {
             _this.menuLayer.turnonButton.setEnabled(true);
             _this.menuLayer.turnonButton.unselected();
             _this.selectedPublicCardPlayerIndex = null;
             _this.selectedPublicCardIndex = null;
+            _this.lowerPlayerLayer.unselectedPublicCard();
+            _this.upperPlayerLayer.unselectedPublicCard();
             
             if (result.status !== 0) {
                 _this.setMessage(result.error && result.error.message || 'turnon操作失败');
@@ -266,7 +342,8 @@ var GameScene = cc.Scene.extend({
      * send believe operate event to server
      */
     believe: function() {
-        if (this.brag.operator !== this.brag.index) {
+        if (this.brag.operator !== this.brag.index ||
+            this.brag.value === 0) {
             return;
         }
 
@@ -337,7 +414,7 @@ var GameScene = cc.Scene.extend({
                 _this.menuLayer.readyButton.setVisible(true);
             }
             else {
-                _this.setMessage(result.error && result.error.message || '进入房间失败‘);
+                _this.setMessage(result.error && result.error.message || '进入房间失败');
             }
         });
     },
@@ -376,7 +453,7 @@ var GameScene = cc.Scene.extend({
 
         this.brag.ready(function(result) {
             _this.menuLayer.readyButton.unselected();
-            _this.menuLyaer.readyButton.setEnabled(true);
+            _this.menuLayer.readyButton.setEnabled(true);
 
             if (result.status === 0) {
                 _this.myselfLayer.setReady(true);
@@ -451,7 +528,7 @@ var GameScene = cc.Scene.extend({
     },
 
     onInterrupt: function(result) {
-        this.back();
+        this.exit();
     },
 
     onEntrance: function(result) {
