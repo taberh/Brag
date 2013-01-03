@@ -73,6 +73,8 @@ var GameMenu = cc.Menu.extend({
         items = items.concat(this._valueItems);
         
         this.initWithArray(items);
+
+        this.cardValue = 0;
     },
 
     _createValueItems: function() {
@@ -85,7 +87,7 @@ var GameMenu = cc.Menu.extend({
     },
 
     onBack: function(target) {
-        this.scene && this.scene.back && this.scene.back();
+        this.scene && this.scene.exit && this.scene.exit();
     },
 
     onSwitchRoom: function(target) {
@@ -117,7 +119,7 @@ var GameMenu = cc.Menu.extend({
     },
 
     selectedValue: function(value) {
-        this.scene && this.scene.selectedValue && this.scene.selectedValue(value);
+        this.cardValue = value;
     },
 
     setKeyboardVisible: function(visible) {
@@ -128,9 +130,9 @@ var GameMenu = cc.Menu.extend({
 
     setValueItemsVisible: function(visible) {
         for (var i = 0, l = this._valueItems.length; i < l; i++) {
-                this._valueItems[i].setVisible(visible);
-            }
+            this._valueItems[i].setVisible(visible);
         }
+    }
 });
 
 /*
