@@ -26,7 +26,7 @@ var GameScene = cc.Scene.extend({
     brag: null,
 
     clockPos: [cc.p(80, 100), cc.p(400, 280), cc.p(80, 280)],
-    movePos: [cc.p(35, 80), cc.p(445, 285), cc.p(35, 285)],
+    cardsPos: [cc.p(35, 80), cc.p(445, 285), cc.p(35, 285)],
 
     init: function(venueID, roomID, password) {
         this._super();
@@ -64,174 +64,39 @@ var GameScene = cc.Scene.extend({
 
         this._setPlayerInfo(this.myselfLayer, App.user);
 
-        this.coverLayer.setOpacity(255);
-        this.coverLayer.setCancelVisible(true);
-        this.coverLayer.setStatus('正在进入房间...');
-
         this.brag = Brag.getInstance();
         this.brag.scene = this;
 
         this.enter();
     },
 
+    setMessage: function(message) {
+    },
+
+    /**
+     * set player avatar, nickname
+     * @param {PlayerLayer} player
+     * @param {Object} info
+     */
     _setPlayerInfo: function(player, info) {
         player.setAvatar(info.avatar_url);
         player.setNickname(info.nickname);
+        
+        if (info['status'] === PLAYER_STATUS_READY) {
+            player.setReady(true);
+        }
     },
 
+    /**
+     * remove player avatar and nickname
+     * @param {PlayerLayer} player
+     */
     _removePlayerInfo: function(player) {
         player.removeAvatar();
         player.setNickname('');
     },
 
-    onReconnect: function() {
-    },
-
-    onReconnectFailed: function() {
-    },
-
-    onInterrupt: function(result) {
-        // alert message
-        this.back();
-    },
-
-    onEntrance: function(result) {
-        if (result.status === 0) {
-            if (result.data.pIdx === this.upperIndex) {
-                this._setPlayerInfo(this.upperPlayerLayer, result.data.player);
-            }
-            else {
-                this._setPlayerInfo(this.lowerPlayerLayer, result.data.player);
-            }
-        }
-        else {
-            // alert error message
-        }
-    },
-
-    onReady: function(result) {
-        if (result.status === 0) {
-            if (result.data.pIdx === this.upperIndex) {
-                this.upperPlayerLayer.setReady(true);
-            }
-            else {
-                this.lowerPlayerLayer.setReady(true);
-            }
-        }
-        else {
-            // alert error message
-        }
-    },
-
-    onLeave: function(result) {
-        if (result.status === 0) {
-            if (result.data.pIdx === this.upperIndex) {
-                this._removePlayerInfo(this.upperPlayerLayer);
-                this.upperPlayerLayer.setReady(false);
-            }
-            else {
-                this._removePlayerInfo(this.lowerPlayerLayer);
-                this.lowerPlayerLayer.setReady(false);
-            }
-        }
-        else {
-            // alert error message
-        }
-    },
-
-    onOperate: function(result) {
-        if (result.status === 0) {
-            var cards = result.data.cards;
-
-            // 1.pase operate
-            if (!result.data.operate) { // start 
-                // remove ready 
-                this.upperPlayerLayer.setReady(false);
-                this.lowerPlayerLayer.setReady(false);
-                this.myselfLayer.setReady(false);
-
-            }
-            else {
-                var playerLayer;
-                
-                switch(result.data.operate.owner) {
-                    case this.myselfIndex:
-                        playerLayer = this.myselfLayer;
-                        break;
-                    case this.upperIndex:
-                        playerLayer = this.upperPlayerLayer;
-                        break;
-                    case this.lowerIndex:
-                        playerLayer = this.lowerPlayerLayer;
-                        break;
-                }
-
-                if (result.data.operate.cards)  {// follow
-                    playerLayer.setPublicCards(result.data.operate.cards);
-                    playerLayer.setMessage(result.data.operate.cards + '个' + result.data.value);
-                } // turnon
-                else if (result.data.operate.card) {
-                    var otherLayer;
-
-                    switch(result.data.operate.pIdx) {
-                        case this.myselfIndex:
-                            otherLayer = this.myselfLayer;
-                            break;
-                        case this.upperIndex:
-                            otherLayer = this.upperPlayerLayer;
-                            break;
-                        case this.lowerIndex:
-                            otherLayer = this.lowerPlayerLayer;
-                            break;
-                    }
-
-                    otherLayer.turnonCard(result.data.operate.cIdx, result.data.operate.card, this, this.turnonCardComplete, result.operate);
-                    playerLayer.setMessage('翻牌');
-                } // believe 
-                else {
-                    playerLayer.setMessage('我信');
-                }
-            }
-
-            // set card value
-            this.tablesLayer.setCardValue(result.data.value ? result.data.value : '');
-
-            // set operator and status
-            this.tablesLayer.setClockVisible(true);
-
-            switch(result.data.operator) {
-                case this.myselfIndex:
-                    this.tablesLayer.setClockPosition(this.clockPos[0]);
-                    break;
-                case this.upperIndex:
-                    this.tablesLayer.setClockPosition(this.clockPos[2]);
-                    break;
-                case this.lowerIndex:
-                    this.tablesLayer.setClockPosition(this.clockPos[1]);
-                    break;
-            }
-            
-            if (result.data.operator === this.myselfIndex) {
-                this.menuLayer.setKeyboardVisible(true);
-
-                if (!result.data.operate || result.data.operate.card) {
-                    this.menuLayer.setValueItemsVisible(true);
-                }
-            }
-
-            // set cards
-            this.upperPlayerLayer.setCardCount(cards[this.upperIndex]);
-            this.lowerPlayerLayer.setCardCount(cards[this.lowerIndex]);
-            this.myselfLayer.setPrivateCards(cards[this.myselfIndex]);
-        }
-        else {
-            // alert error message
-        }
-
-        console.log(this.brag);
-    },
-
-    turnonCardComplete: function(operate) {
+    _turnonCardComplete: function(operate) {
         if (operate.value === operate.card.value) {
             this.movePublicCardsTo(operate.owner);
         }
@@ -240,86 +105,166 @@ var GameScene = cc.Scene.extend({
         }
     },
 
-    movePublicCardsTo: function(playerIndex) {
+    _movePublicCardsTo: function(playerIndex) {
+        var pos;
+
         switch(playerIndex) {
             case this.myselfIndex:
-                    this.upperPlayerLayer.movePublicCardsToPoint(this.movePos[0]);
-                    this.lowerPlayerLayer.movePublicCardsToPoint(this.movePos[0]);
-                    this.myselfLayer.movePublicCardsToPoint(this.movePos[0]);
+                pos = this.cardsPos[0];
                 break;
             case this.lowerIndex:
-                    this.upperPlayerLayer.movePublicCardsToPoint(this.movePos[1]);
-                    this.lowerPlayerLayer.movePublicCardsToPoint(this.movePos[1]);
-                    this.myselfLayer.movePublicCardsToPoint(this.movePos[1]);
+                pos = this.cardsPos[1];
                 break;
             case this.upperIndex:
-                    this.upperPlayerLayer.movePublicCardsToPoint(this.movePos[2]);
-                    this.lowerPlayerLayer.movePublicCardsToPoint(this.movePos[2]);
-                    this.myselfLayer.movePublicCardsToPoint(this.movePos[2]);
+                pos = this.cardsPos[2];
                 break;
         }
+
+        this.upperPlayerLayer.movePublicCardsToPoint(pos);
+        this.lowerPlayerLayer.movePublicCardsToPoint(pos);
+        this.myselfLayer.movePublicCardsToPoint(pos);
     },
 
-    selectedFollowCard: function() {
-
+    /**
+     * game over
+     * @param {Number} winner
+     */
+    _over: function(winner) {
     },
 
-    selectedTurnonCard: function(playerIndex, cardIndex) {
-        this.brag.turnonCardIndex = cardIndex;
-        this.brag.turnonPlayerIndex = playerIndex;
+    /**
+     * start game
+     * @param {Object} data
+     */
+    _start: function(data) {
+        this.myselfLayer.setReady(false);
+        this.upperPlayerLayer.setReady(false);
+        this.lowerPlayerLayer.setReady(false);
+    },
 
-        if (playerIndex === this.upperIndex) {
-            this.lowerPlayerLayer.unselectedCard();
+    /**
+     * reponse throw or follow cards operate
+     * @param {Object} data
+     */
+    _follow: function(data) {
+    },
+
+    /**
+     * reponse turnon card operate
+     * @param {Object} data
+     */
+    _turnon: function(data) {
+    },
+
+    /**
+     * reponse believe operate
+     * @param {Object} data
+     */
+    _believe: function(data) {
+    },
+
+    /**
+     * append cards to game pool
+     * @param {Array} cards
+     */
+    appendCards: function(cards) {
+    },
+
+    /**
+     * selected turnon card
+     * @param {Number} playerIndex
+     * @param {Number} cardIndex
+     */
+    selectedPublicCard: function(playerIndex, cardIndex) {
+        this.selectedPublicCardPlayerIndex = playerIndex;
+        this.selectedPublicCardIndex = cardIndex;
+
+        if (playerIndex === this.lowerIndex) {
+            this.upperPlayerLayer.unselectedPublicCard();
         }
         else {
-            this.upperPlayerLayer.unselectedCard();
+            this.lowerPlayerLayer.unselectedPublicCard();
         }
     },
 
+    /**
+     * send turnon operate event to server
+     */
     turnon: function() {
-        if (this.brag.turnonPlayerIndex < 0 || 
-            this.brag.turnonCardIndex < 0 ||
-            this.brag.operator !== this.brag.index) {
+        if (this.brag.operator !== this.brag.index) {
             return;
         }
 
-        var _this = this;
+        var _this = this,
+            params = {};
 
-        this.brag.operate({
-            'pIdx': this.brag.turnonPlayerIndex,
-            'cIdx': this.brag.turnonCardIndex
-        }, function(result) {
-            if (result.status === 0) {
-                _this.turnonButton.unselected();
-            }
-            else {
-                // alert error message
+        params.pIdx = this.selectedPublicCardPlayerIndex;
+        params.cIdx = this.selectedPublicCardIndex;
+
+        if (typeof params.pIdx !== 'number' ||
+            typeof params.cIdx !== 'number') {
+                this.setMessage('请选择您的揭穿的牌');
+                return;
+        }
+
+        this.menuLayer.turnonButton.selected();
+        this.menuLayer.turnonButton.setEnabled(false);
+
+        this.brag.operate(params, function(result) {
+            _this.menuLayer.turnonButton.setEnabled(true);
+            _this.menuLayer.turnonButton.unselected();
+            _this.selectedPublicCardPlayerIndex = null;
+            _this.selectedPublicCardIndex = null;
+            
+            if (result.status !== 0) {
+                _this.setMessage(result.error && result.error.message || 'turnon操作失败');
             }
         });
     },
 
+    /**
+     * send follow cards operate to server
+     */
     follow: function() {
-        if (this.brag.followCards.length === 0 || 
-            this.brag.currentValue < 1 ||
-            this.brag.operator !== this.brag.index) {
+        if (this.brag.operator !== this.brag.index) {
             return;
         }
 
-        var _this = this;
+        var _this = this,
+            params = {};
 
-        this.brag.operate({
-            'cards': this.brag.followCards,
-            'value': this.brag.currentValue
-        }, function(result) {
-            if (result.status === 0) {
-                _this.followButton.unselected();
+        params.cards = this.myselfLayer.getSelectedPrivateCards();
+
+        if (!params.cards.length) {
+            this.setMessage('请选择您要出的牌');
+            return;
+        }
+
+        if (!this.brag.value) {
+            params.value = this.menuLayer.cardValue;
+
+            if (!params.value) {
+                this.setMessage('请选择吹的牌大小');
+                return;
             }
-            else {
-                // alert error message
+        }
+
+        this.menuLayer.followButton.selected();
+        this.menuLayer.followButton.setEnabled(false);
+
+        this.brag.operate(params, function(result) {
+            _this.menuLayer.followButton.unselected();
+            _this.menuLayer.followButton.setEnabled(true);
+
+            if (result.status !== 0) {
+                _this.setMessage(result.err && result.err.message || 'follow操作失败');
             }
         });
     },
 
+    /**
+     * send believe operate event to server
+     */
     believe: function() {
         if (this.brag.operator !== this.brag.index) {
             return;
@@ -327,62 +272,80 @@ var GameScene = cc.Scene.extend({
 
         var _this = this;
 
+        this.menuLayer.believeButton.selected();
+        this.menuLayer.believeButton.setEnabled(false);
+
         this.brag.operate(function(result) {
-            if (result.status === 0) {
-                _this.believeButton.unselected();
-            }
-            else {
-                // alert error message
+            _this.menuLayer.believeButton.unselected();
+            _this.menuLayer.believeButton.setEnabled(true);
+
+            if (result.status !== 0) {
+                this.setMessage(result.err && result.err.message || 'believe 操作出错');
             }
         });
     },
 
+    /**
+     * send enter room event
+     */
     enter: function() {
-        var _this = this;
+        if (this.brag.index > -1) {
+            return;
+        }
 
-        this.brag.enter({
-            vid: this.venueID
-        }, function(result) {
+        var _this = this,
+            params = {};
+
+        params.vid = this.venueID;
+
+        if (typeof params.vid !== 'number') {
+            console.warn('emit enter room params error!');
+            return;
+        }
+
+        params.rid = this.roomID;
+        params.password = this.paddword;
+
+        this.coverLayer.setOpacity(255);
+        this.coverLayer.setCancelVisible(true);
+        this.coverLayer.setStatus('正在进入房间...');
+
+        this.brag.enter(params, function(result) {
+            var mIdx, uIdx, lIdx, uPlayer, lPlayer;
+
             _this.coverLayer.hide();
 
             if (result.status === 0) {
-                var myIdx = result.data.pIdx,
-                    upIdx = (myIdx + 2) % 3,
-                    loIdx = (myIdx + 4) % 3,
-                    upPlayer = result.data.players[upIdx],
-                    loPlayer = result.data.players[loIdx];
+                mIdx = result.data.pIdx,
+                uIdx = (mIdx + 2) % 3,
+                lIdx = (mIdx + 4) % 3,
+                uPlayer = result.data.players[uIdx],
+                lPlayer = result.data.players[lIdx];
 
-                _this.myselfLayer.index = myIdx;
-                _this.upperPlayerLayer.index = upIdx;
-                _this.lowerPlayerLayer.index = loIdx;
-                _this.upperIndex = upIdx;
-                _this.lowerIndex = loIdx;
-                _this.myselfIndex = myIdx;
+                _this.upperIndex = uIdx;
+                _this.lowerIndex = lIdx;
+                _this.myselfIndex = mIdx;
+                _this.myselfLayer.index = mIdx;
+                _this.upperPlayerLayer.index = uIdx;
+                _this.lowerPlayerLayer.index = lIdx;
 
-                if (upPlayer) {
-                    _this._setPlayerInfo(_this.upperPlayerLayer, upPlayer);
-
-                    if (upPlayer.status === PLAYER_STATUS_READY) {
-                        _this.upperPlayerLayer.setReady(true);
-                    }
-                }
-
-                if (loPlayer) {
-                    _this._setPlayerInfo(_this.lowerPlayerLayer, loPlayer);
-
-                    if (loPlayer.status === PLAYER_STATUS_READY) {
-                        _this.lowerPlayerLayer.setReady(true);
-                    }
-                }
+                uPlayer ? _this._setPlayerInfo(_this.upperPlayerLayer, uPlayer) : 
+                        void 0;
+                lPlayer ? _this._setPlayerInfo(_this.lowerPlayerLayer, lPlayer) : 
+                        void 0;
 
                 _this.menuLayer.readyButton.setVisible(true);
             }
             else {
-                // alert error
+                _this.setMessage(result.error && result.error.message || '进入房间失败‘);
             }
         });
     },
 
+    /**
+     * send leave room event
+     * @param {Boolean} reenter
+     */
     leave: function(reenter) {
         var _this = this;
 
@@ -402,34 +365,51 @@ var GameScene = cc.Scene.extend({
         });
     },
 
+    /**
+     * send ready event to server
+     */
     ready: function() {
         var _this = this;
 
+        this.menuLayer.readyButton.selected();
+        this.menuLayer.readyButton.setEnabled(false);
+
         this.brag.ready(function(result) {
+            _this.menuLayer.readyButton.unselected();
+            _this.menuLyaer.readyButton.setEnabled(true);
+
             if (result.status === 0) {
                 _this.myselfLayer.setReady(true);
                 _this.menuLayer.readyButton.setVisible(false);
             }
             else {
-                // alert message
+                _this.setMessage(result.error && result.error.message || '准备失败');
             }
         });
     },
 
+    /**
+     * cancel operate
+     */
     cancel: function() {
         this.runMainScene();
     },
 
-    back: function() {
+    /**
+     * exit game
+     */
+    exit: function() {
         if (this.brag && this.brag.playing) {
             return alert('游戏中，不能退出');
         }
 
         this.leave(false);
-
         this.runMainScene();
     },
 
+    /**
+     * switch room in curren venue
+     */
     switchRoom: function() {
         if (this.brag && !this.brag.playing) {
             this.coverLayer.setStatus('正在切换房间...');
@@ -441,15 +421,113 @@ var GameScene = cc.Scene.extend({
         }
     },
 
+    /**
+     * toggle background music and sound effect
+     */
     toggleSound: function() {
     },
 
+    /**
+     * send a face message
+     * @param {Number} face Face code
+     */
     sendFace: function(face) {
     },
 
+    /**
+     * back to main scene
+     */
     runMainScene: function() {
         var director = cc.Director.getInstance();
         director.replaceScene(MainScene.create());
+    },
+
+    onReconnect: function() {
+        console.log('reconnect...');
+    },
+
+    onReconnectFailed: function() {
+        console.log('reconnect failed...');
+    },
+
+    onInterrupt: function(result) {
+        this.back();
+    },
+
+    onEntrance: function(result) {
+        if (result.status === 0) {
+            if (result.data.pIdx === this.upperIndex) {
+                this._setPlayerInfo(this.upperPlayerLayer, result.data.player);
+            }
+            else {
+                this._setPlayerInfo(this.lowerPlayerLayer, result.data.player);
+            }
+        }
+        else {
+            console.warn(result.error && result.error.message || 'Error..');
+        }
+    },
+
+    onReady: function(result) {
+        if (result.status === 0) {
+            if (result.data.pIdx === this.upperIndex) {
+                this.upperPlayerLayer.setReady(true);
+            }
+            else {
+                this.lowerPlayerLayer.setReady(true);
+            }
+        }
+        else {
+            console.log(result.error && result.error.message || 'Error..');
+        }
+    },
+
+    onLeave: function(result) {
+        if (result.status === 0) {
+            if (result.data.pIdx === this.upperIndex) {
+                this._removePlayerInfo(this.upperPlayerLayer);
+                this.upperPlayerLayer.setReady(false);
+            }
+            else {
+                this._removePlayerInfo(this.lowerPlayerLayer);
+                this.lowerPlayerLayer.setReady(false);
+            }
+        }
+        else {
+            console.log(result.error && result.error.message || 'Error..');
+        }
+    },
+
+    onOperate: function(result) {
+        if (result.status === 0) {
+            var data = result.data;
+
+            // game over 
+            if (data.winner !== undefined) {
+                return this._over(data.winner);
+            }
+
+            // start game
+            if (!data.operate) {
+                return this._start(data);
+            }
+            
+            // response throw or follow cards operate
+            if (data.operate.cards) {
+                return this._follow(data);
+            }
+
+            // response turnon card operate
+            if (data.operate.card) {
+                return this._turnon(data);
+            }
+
+            // response believe operate
+            this._believe(data);
+        }
+        else {
+            console.warn(result.error && result.error.message || 'Error..');
+        }
     }
 });
 
