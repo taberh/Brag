@@ -32,19 +32,12 @@ var Brag = (function() {
      */
     function Brag() {
         this._socket = null;
-
         this.players = [];
-        this.cards = null;
         this.index = -1;
         this.operator = -1;
-
-        this.currentValue = 0;
-        this.followCards = [];
-
-        this.turnonPlayerIndex = -1;
-        this.turnonCardIndex = -1;
-
+        this.value = 0;
         this.connected = false; 
+        this.reconnected = false;
         this.playing = false;
         this.scene = null;
     }
@@ -52,19 +45,22 @@ var Brag = (function() {
     Brag.prototype = {
         constructor: Brag,
 
+        /**
+         * init socket and listener event
+         */
         init: function() {
             this._socket = io.connect('/brag');
-            this._socket.on('connect', wrapFunc(this._onConnect, this));
-            this._socket.on('connect_failed', wrapFunc(this._onConnectFailed, this));
-            this._socket.on('reconnect', wrapFunc(this._onReconnect, this));
-            this._socket.on('reconnect_failed', wrapFunc(this._onReconnectFailed, this));
-            this._socket.on('error', wrapFunc(this._onError, this));
-            this._socket.on('disconnect', wrapFunc(this._onDisconnect, this));
-            this._socket.on('room enter', wrapFunc(this._onEntrance, this));
-            this._socket.on('room leave', wrapFunc(this._onLeave, this));
-            this._socket.on('room interrupt', wrapFunc(this._onInterrupt, this));
-            this._socket.on('player ready', wrapFunc(this._onReady, this));
-            this._socket.on('player operate', wrapFunc(this._onOperate, this));
+            this._socket.on('connect', wrapFunc(this.onConnect, this));
+            this._socket.on('connect_failed', wrapFunc(this.onConnectFailed, this));
+            this._socket.on('reconnect', wrapFunc(this.onReconnect, this));
+            this._socket.on('reconnect_failed', wrapFunc(this.onReconnectFailed, this));
+            this._socket.on('error', wrapFunc(this.onError, this));
+            this._socket.on('disconnect', wrapFunc(this.onDisconnect, this));
+            this._socket.on('room enter', wrapFunc(this.onEntrance, this));
+            this._socket.on('room leave', wrapFunc(this.onLeave, this));
+            this._socket.on('room interrupt', wrapFunc(this.onInterrupt, this));
+            this._socket.on('player ready', wrapFunc(this.onReady, this));
+            this._socket.on('player operate', wrapFunc(this.onOperate, this));
             
             function wrapFunc(func, target) {
                 return function() {
@@ -77,6 +73,11 @@ var Brag = (function() {
             this._socket.disconnect();
         },
 
+        /**
+         * send enter event
+         * @param {Object} params
+         * @param {Function} callback
+         */
         enter: function(params, callback) {
             console.log('start enter...');
 
@@ -104,6 +105,10 @@ var Brag = (function() {
             });
         },
 
+        /**
+         * send leave event
+         * @param {Function} callback
+         */
         leave: function(callback) {
             console.log('start leave...');
                      
@@ -126,6 +131,10 @@ var Brag = (function() {
             });
         },
 
+        /**
+         * send ready event
+         * @param {Function} callback
+         */
         ready: function(callback) {
             console.log('start ready...');
                      
@@ -147,6 +156,11 @@ var Brag = (function() {
             });
         },
 
+        /**
+         * send operate event
+         * @param {Object} params
+         * @param {Function} callback
+         */
         operate: function(params, callback) {
             console.log('start operate...');
 
@@ -165,39 +179,42 @@ var Brag = (function() {
             });
         },
 
-        _onConnect: function() {
+        onConnect: function() {
             console.log('connect...');
             this.connected = true;
             this.scene && this.scene.onConnect && this.scene.onConnect();
         },
 
-        _onConnectFailed: function() {
+        onConnectFailed: function() {
             console.log('connect failed...');
+            this.connected = false;
             this.scene && this.scene.onConnectFailed && this.scene.onConnectFailed();
         },
 
-        _onReconnect: function() {
+        onReconnect: function() {
             console.log('reconnect...');
+            this.reconnect = true;
             this.scene && this.scene.onReconnect && this.scene.onReconnect();
         },
 
-        _onReconnectFailed: function() {
+        onReconnectFailed: function() {
             console.log('reconnect failed...');
+            this.reconnect = false;
             this.scene && this.scene.onReconnectFailed && this.scene.onReconnectFailed();
         },
 
-        _onDisconnect: function() {
+        onDisconnect: function() {
             console.log('disconnect...');
             this.connected = false;
             this.scene && this.scene.onDisconnect && this.scene.onDisconnect();
         },
 
-        _onError: function() {
+        onError: function() {
             console.log('error...');
             this.scene && this.scene.onError && this.scene.onError();
         },
 
-        _onEntrance: function(result) {
+        onEntrance: function(result) {
             console.log(result.message || result.error && result.error.message);
 
             if (result.status === 0) {
@@ -207,7 +224,7 @@ var Brag = (function() {
             this.scene && this.scene.onEntrance && this.scene.onEntrance(result);
         },
 
-        _onLeave: function(result) {
+        onLeave: function(result) {
             console.log(result.message || result.error && result.error.message);
 
             if (result.status === 0) {
@@ -217,13 +234,13 @@ var Brag = (function() {
             this.scene && this.scene.onLeave && this.scene.onLeave(result);
         },
 
-        _onInterrupt: function(result) {
+        onInterrupt: function(result) {
             console.warn(result.message || '意外中断，sorry!!');
             this.playing = false;
             this.scene && this.scene.onInterrupt && this.scene.onInterrupt(result);
         },
 
-        _onReady: function(result) {
+        onReady: function(result) {
             console.log(result.message || result.error && result.error.message);
 
             if (result.status === 0) {
@@ -240,18 +257,14 @@ var Brag = (function() {
             this.scene && this.scene.onReady && this.scene.onReady(result);
         },
 
-        _onOperate: function(result) {
+        onOperate: function(result) {
             console.log(result.message || result.error && result.error.message);
 
             if (result.status === 0) {
                 if (result.data.winner !== undefined) {
                     this.playing = false;
-                    this.cards = null;
                     this.operator = -1;
-                    this.currentValue = 0;
-                    this.followCards = [];
-                    this.turnonPlayerIndex = -1;
-                    this.turnonCardIndex = -1;
+                    this.value = 0;
 
                     this.players.forEach(function(player) {
                         player['status'] = PLAYER_STATUS_NONE;
@@ -260,20 +273,7 @@ var Brag = (function() {
                 else {
                     this.playing = true;
                     this.operator = result.data.operator;
-                    
-                    /*if (this.cards === null) {
-                        this.cards = result.data.cards;
-                    }
-                    else {
-                        this.cards.forEach(function(card, i) {
-                            if (typeof card === 'number') {
-                                return result.data.cards[i];
-                            }
-                            else {
-                                return card;
-                            }
-                        });
-                    }*/
+                    this.value = result.data.value;
                 }
             }
 
