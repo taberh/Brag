@@ -404,16 +404,22 @@ var MyselfLayer = PlayerLayer.extend({
     },
 
     /**
+     * remove private cards sprite
+     */
+    removePrivateCards: function() {
+        this._privateCardsBox.removeAllChildrenWithCleanup(true);
+    },
+
+    /**
      * set private cards sprite
      * @param {Array} cards
      */
     setPrivateCards: function(cards) {
-        this._privateCardsBox.removeAllChildrenWithCleanup(true);
-
         var padding = this._countCardsInterval(cards.length, this._privateCardsBox);
+        var i, l, item;
 
-        for (var i = 0, l = cards.length; i < l; i++) {
-            var item = CardMenuItem.create(cards[i]);
+        for (i = 0, l = cards.length; i < l; i++) {
+            item = CardMenuItem.create(cards[i]);
             item.setAnchorPoint(cc.PointZero());
             item.setPosition(cc.p((padding+40)*i-padding, 25));
             this._privateCardsBox.addChild(item);
