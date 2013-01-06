@@ -44,22 +44,18 @@ var GameMenu = cc.Menu.extend({
         toggleFaceButton.setPosition(cc.p(330, 300));
 
         this.turnonButton = cc.MenuItemFont.create('翻牌', this, this.onTurnon);
-        this.turnonButton.setPosition(cc.p(100, 85));
+        this.turnonButton.setPosition(cc.p(100, 120));
 
         this.believeButton = cc.MenuItemFont.create('相信', this, this.onBelieve);
-        this.believeButton.setPosition(cc.p(150, 85));
+        this.believeButton.setPosition(cc.p(150, 120));
 
         this.followButton = cc.MenuItemFont.create('出牌', this, this.onFollow);
-        this.followButton.setPosition(cc.p(200, 85));
+        this.followButton.setPosition(cc.p(200, 120));
 
         this.readyButton = cc.MenuItemFont.create('准备', this, this.onReady);
-        this.readyButton.setPosition(cc.p(250, 85));
+        this.readyButton.setPosition(cc.p(250, 120));
 
         this._createValueItems();
-
-        this.setValueItemsVisible(false);
-        this.setKeyboardVisible(false);
-        this.readyButton.setVisible(false);
 
         items.push(backButton);
         items.push(switchRoomButton);
@@ -75,6 +71,10 @@ var GameMenu = cc.Menu.extend({
         this.initWithArray(items);
 
         this.cardValue = 0;
+
+        this.setValueItemsVisible(false);
+        this.setKeyboardVisible(false);
+        this.readyButton.setVisible(false);
     },
 
     _createValueItems: function() {
