@@ -23,7 +23,6 @@ var GameMenu = cc.Menu.extend({
     readyButton: null,
 
     _valueItems: [],
-    _VALUE_ITEM_BASE_TAG: 900,
 
     initMenu: function() {
 
@@ -55,8 +54,6 @@ var GameMenu = cc.Menu.extend({
         this.readyButton = cc.MenuItemFont.create('准备', this, this.onReady);
         this.readyButton.setPosition(cc.p(250, 120));
 
-        this._createValueItems();
-
         items.push(backButton);
         items.push(switchRoomButton);
         items.push(toggleSoundButton);
@@ -66,9 +63,9 @@ var GameMenu = cc.Menu.extend({
         items.push(this.followButton);
         items.push(this.readyButton);
 
-        items = items.concat(this._valueItems);
-        
         this.initWithArray(items);
+
+        this._insertValueItems();
 
         this.cardValue = 0;
 
@@ -77,12 +74,13 @@ var GameMenu = cc.Menu.extend({
         this.readyButton.setVisible(false);
     },
 
-    _createValueItems: function() {
+    _insertValueItems: function() {
         for (var i = 1; i < 14; i++) {
             var item = ValueMenuItem.create(i);
             item.menu = this;
             item.setPosition(cc.p(i*30, 160));
             this._valueItems.push(item);
+            this.addChild(item);
         }
     },
 
