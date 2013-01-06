@@ -40,8 +40,10 @@ var PlayerLayer = cc.Layer.extend({
         this._nameLabel = cc.LabelTTF.create('', App.NORMAL_FONT, 12, cc.size(64,20), cc.TEXT_ALIGNMENT_CENTER);
         this._nameLabel.setVisible(false);
 
-        this._messageLabel = cc.LabelTTF.create('', App.NORMAL_FONT, 12, cc.size(120,20), cc.TEXT_ALIGNMENT_LEFT);
+        this._messageLabel = cc.LabelTTF.create('', App.NORMAL_FONT, 16, cc.size(120,20), cc.TEXT_ALIGNMENT_LEFT);
         this._messageLabel.setVisible(false);
+        this._messageLabel.setAnchorPoint(cc.PointZero());
+        this._messageLabel.setColor(cc.red());
 
         this._cardsTotalLabel = cc.LabelTTF.create('', App.NORMAL_FONT, 12, cc.size(50,20), cc.TEXT_ALIGNMENT_LEFT);
         this._cardsTotalLabel.setVisible(false);
@@ -387,7 +389,7 @@ var MyselfLayer = PlayerLayer.extend({
 
         this._nameLabel.setPosition(cc.p(35, 100));
 
-        this._messageLabel.setPosition(cc.p(35, 60));
+        this._messageLabel.setPosition(cc.p(35, 100));
 
         this._publicCardsBox.setPosition(cc.p(130, 90));
 
