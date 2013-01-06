@@ -56,7 +56,7 @@ var PlayerLayer = cc.Layer.extend({
         this._avatarBackgroundSprite = cc.Sprite.create(s_avatar_bg);
 
         this.addChild(this._nameLabel);
-        this.addChild(this._messageLabel);
+        this.addChild(this._messageLabel, 2);
         this.addChild(this._cardsTotalLabel);
         this.addChild(this._publicCardsBox);
         this.addChild(this._avatarBackgroundSprite);
