@@ -96,7 +96,7 @@ var GameScene = cc.Scene.extend({
         player.setNickname('');
     },
 
-    _turnonCardComplete: function(operate) {
+ /*   _turnonCardComplete: function(operate) {
         if (operate.value === operate.card.value) {
             this.movePublicCardsTo(operate.owner);
         }
@@ -123,7 +123,7 @@ var GameScene = cc.Scene.extend({
         this.upperPlayerLayer.movePublicCardsToPoint(pos);
         this.lowerPlayerLayer.movePublicCardsToPoint(pos);
         this.myselfLayer.movePublicCardsToPoint(pos);
-    },
+    }, */
 
     _initPlayer: function(player) {
         player.setMessage('');
@@ -137,7 +137,7 @@ var GameScene = cc.Scene.extend({
         }
     },
 
-    _initOperator: function(operator, value) {
+    _updateOperator: function(operator, value) {
         var pos, isMyself, isNew;
 
         isMyself = operator === this.myselfIndex;
@@ -167,6 +167,7 @@ var GameScene = cc.Scene.extend({
     },
 
     _updateCards: function(cards) {
+        this.myselfLayer.removePrivateCards();
         this.myselfLayer.setPrivateCards(cards[this.myselfIndex]);
 
         this.upperPlayerLayer.setCardsVisible(true);
@@ -204,7 +205,9 @@ var GameScene = cc.Scene.extend({
         this.lowerPlayerLayer.setReady(false);
 
         this._updateCards(data.cards);
-        this._initOperator(data.operator, data.value);
+        this._updateOperator(data.operator, data.value);
+
+        this.tablesLayer.setCardValue(data.value);
     },
 
     /**
@@ -212,6 +215,27 @@ var GameScene = cc.Scene.extend({
      * @param {Object} data
      */
     _follow: function(data) {
+        var player;
+
+        switch(data.operate.owner) {
+            case this.upperIndex:
+                player = this.upperPlayerLayer;
+                break;
+            case this.lowerIndex:
+                player = this.lowerPlayerLayer;
+                break;
+            case this.myselfIndex:
+                player = this.myselfLayer;
+                break;
+        }
+
+        player.setPublicCards(data.operate.cards);
+        player.setMessage(data.operate.cards + '个' + data.value);
+
+        this._updateCards(data.cards);
+        this._updateOperator(data.operator, data.value);
+
+        this.tablesLayer.setCardValue(data.value);
     },
 
     /**
@@ -226,6 +250,11 @@ var GameScene = cc.Scene.extend({
      * @param {Object} data
      */
     _believe: function(data) {
+        if (data.value === 0) {
+            // remove all public cards and game pool cards to trash area
+        }
+
+        this._updateOperator(data.operator, data.value);
     },
 
     /**
@@ -528,7 +557,7 @@ var GameScene = cc.Scene.extend({
     },
 
     onInterrupt: function(result) {
-        this.exit();
+        this.runMainScene();
     },
 
     onEntrance: function(result) {
