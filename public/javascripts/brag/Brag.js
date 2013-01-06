@@ -237,6 +237,10 @@ var Brag = (function() {
         onInterrupt: function(result) {
             console.warn(result.message || '意外中断，sorry!!');
             this.playing = false;
+            this.players = [];
+            this.index = -1;
+            this.operator = -1;
+            this.value = 0;
             this.scene && this.scene.onInterrupt && this.scene.onInterrupt(result);
         },
 
